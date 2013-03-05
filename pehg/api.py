@@ -10,4 +10,5 @@ class Api:
         self._resources[resource_name] = resource
     
     def unregister_resource(self, resource_name):
-        del self._resources[resource_name]
+        if resource_name in self._resources:
+            del self._resources[resource_name]

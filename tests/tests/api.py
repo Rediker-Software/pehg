@@ -28,3 +28,19 @@ class TestApi(TestCase):
         api.register_resource(PearResource())
         self.assertEqual(len(api._resources), 2)
         self.assertEqual(sorted(api._resources.keys()), ["apple", "pear"])
+    
+    def test_unregister_resource(self):
+        api = Api()
+        api.register_resource(AppleResource())
+        api.register_resource(PearResource())
+        self.assertEqual(sorted(api._resources.keys()), ["apple", "pear"])
+        
+        api.unregister_resource("apple")
+        self.assertEqual(sorted(api._resources.keys()), ["pear"])
+        self.assertEqual(len(api._resources), 1)
+        
+        api.unregister_resource("pear")
+        self.assertEqual(len(api._resources), 0)
+        
+        api.unregister_resource("invalid")
+        self.assertEqual(len(api._resources), 0)
