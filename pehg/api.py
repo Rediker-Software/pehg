@@ -5,10 +5,9 @@ class Api:
         self._resources = {}
     
     def register_resource(self, resource):
-        resource_name = getattr(resource, "api_name", None)
+        resource_name = getattr(resource, "resource_name", None)
         
         self._resources[resource_name] = resource
     
     def unregister_resource(self, resource_name):
         del self._resources[resource_name]
-    
