@@ -1,4 +1,6 @@
+from django.http import HttpRequest
 from django.test import TestCase
+
 from pehg.api import Api
 from pehg.resources import Resource
 
@@ -12,6 +14,16 @@ class PearResource(Resource):
 
 
 class TestApi(TestCase):
+    
+    def test_get(self):
+        api = Api()
+        
+        response = api.get(HttpRequest())
+        self.assertEquals(response.content, "{}")
+        self.assertEquals(response.status_code, 200)
+        
+        api.register_resource(AppleResource())
+        response = api.get(HttpRequest())
     
     def test_register_resource(self):
         api = Api()
