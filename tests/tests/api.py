@@ -15,15 +15,15 @@ class PearResource(Resource):
 
 class TestApi(TestCase):
     
-    def test_get(self):
+    def test_get_index(self):
         api = Api()
         
-        response = api.get(HttpRequest())
+        response = api.get_index(HttpRequest())
         self.assertEquals(response.content, "{}")
         self.assertEquals(response.status_code, 200)
         
         api.register_resource(AppleResource())
-        response = api.get(HttpRequest())
+        response = api.get_index(HttpRequest())
     
     def test_register_resource(self):
         api = Api()
@@ -56,3 +56,15 @@ class TestApi(TestCase):
         
         api.unregister_resource("invalid")
         self.assertEqual(len(api._resources), 0)
+    
+    def test_urls(self):
+        api = Api()
+        
+        urls = api.urls
+        self.assertEqual(len(urls), 1)
+        
+        api.register_resource(AppleResource())
+        api.register_resource(PearResource())
+        urls = api.urls
+        print urls
+        self.assertEqual(len(urls), 3)

@@ -1,2 +1,5 @@
 class Resource:
-    pass
+    
+    @property
+    def urls(self):
+        return []

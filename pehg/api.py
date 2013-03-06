@@ -5,6 +5,10 @@ try:
 except ImportError:
     import json
 
+try:
+    from django.conf.urls import include, patterns, url
+except ImportError:
+    from django.conf.urls.defaults import include, patterns, url
 
 class Api:
     
@@ -12,7 +16,7 @@ class Api:
         self.api_name = api_name
         self._resources = {}
     
-    def get(self, request):
+    def get_index(self, request):
         resource_data = {}
         
         for resource_name, resource in self._resources.iteritems():
@@ -30,3 +34,20 @@ class Api:
     def unregister_resource(self, resource_name):
         if resource_name in self._resources:
             del self._resources[resource_name]
+    
+    @property
+    def urls(self):
+        patterns_list = [
+            url(r"^%s/$" % (self.api_name, ), self.get_index, name="api_%s_index" % (self.api_name, )),
+        ]
+        
+        for resource_name, resource in self._resources.iteritems():
+            patterns_list += [
+                url(r"^%s/%s/$" % (self.api_name, resource_name, ), include(resource.urls)),
+            ]
+        
+        urlpatterns = patterns("",
+            *patterns_list
+        )
+        
+        return urlpatterns
