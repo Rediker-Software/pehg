@@ -10,6 +10,7 @@ try:
 except ImportError:
     from django.conf.urls.defaults import include, patterns, url
 
+
 class Api:
     
     def __init__(self, api_name="v1"):
@@ -46,8 +47,6 @@ class Api:
                 url(r"^%s/%s/$" % (self.api_name, resource_name, ), include(resource.urls)),
             ]
         
-        urlpatterns = patterns("",
-            *patterns_list
-        )
+        urlpatterns = patterns("", *patterns_list)
         
         return urlpatterns
