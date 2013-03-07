@@ -6,13 +6,13 @@ except ImportError:
 
 class Resource:
     
-    def request_index(self, request):
+    def dispatch_index(self, request):
         pass
     
     @property
     def urls(self):
         patterns_list = [
-            url(r"^$", self.request_index, name="%s_index" % (self.resource_name, )),
+            url(r"^$", self.dispatch_index, name="%s_index" % (self.resource_name, )),
         ]
         
         url_patterns = patterns("", *patterns_list)
