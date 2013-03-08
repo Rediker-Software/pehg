@@ -26,5 +26,7 @@ class TestModelResources(TestCase):
         apple = Apple(name="test")
         apple.save()
     
-    def test_test(self):
+    def test_data_set(self):
         resource = AppleResource()
+        
+        self.assertNotEqual(resource.data_set, None)

@@ -1,3 +1,4 @@
+from .datasets import ModelDataSet
 from .http import JsonResponse
 
 try:
@@ -14,6 +15,9 @@ class Resource:
     def dispatch_details(self, request, pks):
         pass
     
+    def get_index(self, request):
+        pass
+    
     @property
     def urls(self):
         patterns_list = [
@@ -27,4 +31,9 @@ class Resource:
 
 
 class ModelResource(Resource):
-    pass
+    
+    data_set = None
+    
+    def __init__(self):
+        if not self.data_set:
+            self.data_set = ModelDataSet(self.model)
