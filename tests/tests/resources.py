@@ -8,8 +8,9 @@ class PearResource(Resource):
 
 
 class AppleResource(ModelResource):
-    resource_name = "apple"
+    fields = ["name", ]
     model = Apple
+    resource_name = "apple"
 
 
 class TestResources(TestCase):

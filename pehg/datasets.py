@@ -22,3 +22,13 @@ class ModelDataSet(DataSet):
         copied.queryset = copied.queryset.filter(*args, **kwargs)
         
         return copied
+    
+    def serialize_list(self, fields=[]):
+        data_list = self.queryset.values(*fields)
+        
+        return data_list
+    
+    def serialize_obj(self, obj, fields=[]):
+        from django.forms.models import model_to_dict
+        
+        return model_to_dict(obj, fields)
