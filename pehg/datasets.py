@@ -17,7 +17,7 @@ class DataSet:
         return copied
     
     def serialize_list(self, fields=[]):
-        pass
+        return self.data
     
     def serialize_obj(self, obj, fields=[]):
         pass

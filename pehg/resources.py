@@ -45,6 +45,11 @@ class Resource(object):
         
         return JsonResponse(index_data)
     
+    def post_index(self, request):
+        from .http import HttpCreated
+        
+        return HttpCreated()
+    
     @property
     def urls(self):
         patterns_list = [

@@ -6,6 +6,10 @@ except ImportError:
     import json
 
 
+class HttpCreated(HttpResponse):
+    status_code = 201
+
+
 class JsonResponse(HttpResponse):
     
     def __init__(self, data_dict, *args, **kwargs):

@@ -1,12 +1,14 @@
 from django.http import HttpRequest
 from django.test import TestCase
 
+from pehg.datasets import DataSet
 from pehg.resources import ModelResource, Resource
 from ..models import Apple
 
 
 class PearResource(Resource):
     resource_name = "pear"
+    data_set = DataSet([{"id": 1, "name": "test"}])
 
 
 class AppleResource(ModelResource):
@@ -22,12 +24,16 @@ class TestResources(TestCase):
         
         request = HttpRequest()
         
-        test_methods = ["GET"]#, "POST", "PUT", "DELETE"]
+        test_methods = ["GET", "POST"]
         
         for method in test_methods:
             request.method = method
             
-            #resource.dispatch_index(request)
+            dispatch_response = resource.dispatch_index(request)
+            method_response = getattr(resource, "%s_index" % (method.lower(), ))(request)
+            
+            self.assertEqual(str(dispatch_response), str(method_response))
+            self.assertEqual(type(dispatch_response), type(method_response))
     
     def test_dispatch_details(self):
         resource = PearResource()
