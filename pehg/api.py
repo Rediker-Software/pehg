@@ -44,7 +44,7 @@ class Api:
         
         for resource_name, resource in self._resources.iteritems():
             patterns_list += [
-                url(r"^%s/%s/$" % (self.api_name, resource_name, ), include(resource.urls)),
+                url(r"^%s/%s/" % (self.api_name, resource_name, ), include(resource.urls)),
             ]
         
         urlpatterns = patterns("", *patterns_list)

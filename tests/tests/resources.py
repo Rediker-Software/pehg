@@ -11,4 +11,4 @@ class TestResources(TestCase):
     def test_urls(self):
         resource = AppleResource()
         
-        self.assertEqual(len(resource.urls), 1)
+        self.assertEqual(len(resource.urls), 2)
