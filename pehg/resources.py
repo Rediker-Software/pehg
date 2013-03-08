@@ -24,3 +24,7 @@ class Resource:
         url_patterns = patterns("", *patterns_list)
         
         return url_patterns
+
+
+class ModelResource(Resource):
+    pass

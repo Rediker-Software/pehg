@@ -1,2 +1,2 @@
 from .api import TestApi
-from .resources import TestResources
+from .resources import TestModelResources, TestResources
