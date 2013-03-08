@@ -21,10 +21,14 @@ class Resource(object):
             self.resource_name_plural = self.resource_name + "s"
     
     def dispatch_index(self, request):
-        pass
+        func = self._validate_request_type(request, "index")
+        
+        return func(request)
     
     def dispatch_details(self, request, pks):
-        pass
+        func = self._validate_request_type(request, "instance")
+        
+        return func(request)
     
     def get_index(self, request):
         index_data = {}

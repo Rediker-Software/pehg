@@ -26,9 +26,15 @@ class TestResources(TestCase):
         resource = PearResource()
         
         request = HttpRequest()
-        request.method = "GET"
         
-        func = resource._validate_request_type(request, "index")
+        test_methods = ["GET", "POST", "PUT", "DELETE"]
+        test_dispatch = ["index", "set", "instance"]
+        
+        for method in test_methods:
+            request.method = method
+            
+            for dispatch in test_dispatch:
+                func = resource._validate_request_type(request, dispatch)
 
 
 class TestModelResources(TestCase):
