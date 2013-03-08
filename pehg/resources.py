@@ -7,7 +7,18 @@ except ImportError:
     from django.conf.urls.defaults import patterns, url
 
 
-class Resource:
+class Resource(object):
+    
+    allowed_methods = ["GET", "POST", "PUT", "DELETE"]
+    
+    data_set = None
+    
+    resource_name = None
+    resource_name_plural = None
+    
+    def __init__(self, *args, **kwargs):
+        if not self.resource_name_plural:
+            self.resource_name_plural = self.resource_name + "s"
     
     def dispatch_index(self, request):
         pass
@@ -16,7 +27,10 @@ class Resource:
         pass
     
     def get_index(self, request):
-        pass
+        index_data = {}
+        index_data[self.resource_name_plural] = self.data_set.serialize_list()
+        
+        return JsonResponse(index_data)
     
     @property
     def urls(self):
@@ -28,12 +42,30 @@ class Resource:
         url_patterns = patterns("", *patterns_list)
         
         return url_patterns
+    
+    def _validate_request_type(self, request, dispatch_type):
+        request_type = request.method
+        request_type = request_type.upper()
+        
+        dispatch_type = dispatch_type.lower()
+        
+        if not request_type in self.allowed_methods:
+            return
+        
+        request_type = request_type.lower()
+        
+        if not hasattr(self, "%s_%s" % (request_type, dispatch_type, )):
+            return
+        
+        func = getattr(self, "%s_%s" % (request_type, dispatch_type, ))
+        
+        return func
 
 
 class ModelResource(Resource):
     
-    data_set = None
-    
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(ModelResource, self).__init__(*args, **kwargs)
+        
         if not self.data_set:
             self.data_set = ModelDataSet(self.model)

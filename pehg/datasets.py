@@ -26,7 +26,7 @@ class ModelDataSet(DataSet):
     def serialize_list(self, fields=[]):
         data_list = self.queryset.values(*fields)
         
-        return data_list
+        return list(data_list)
     
     def serialize_obj(self, obj, fields=[]):
         from django.forms.models import model_to_dict
