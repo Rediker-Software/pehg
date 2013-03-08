@@ -5,6 +5,22 @@ class DataSet:
     
     def __init__(self, data_list):
         self.data = data_list
+    
+    def count(self):
+        return len(self.data)
+    
+    def filter(self, *args, **kwargs):
+        copied = copy.deepcopy(self)
+        
+        copied.data = self.data
+        
+        return copied
+    
+    def serialize_list(self, fields=[]):
+        pass
+    
+    def serialize_obj(self, obj, fields=[]):
+        pass
 
 
 class ModelDataSet(DataSet):

@@ -17,6 +17,38 @@ class AppleResource(ModelResource):
 
 class TestResources(TestCase):
     
+    def test_dispatch_index(self):
+        resource = PearResource()
+        
+        request = HttpRequest()
+        
+        test_methods = ["GET"]#, "POST", "PUT", "DELETE"]
+        
+        for method in test_methods:
+            request.method = method
+            
+            #resource.dispatch_index(request)
+    
+    def test_dispatch_details(self):
+        resource = PearResource()
+        
+        request = HttpRequest()
+        
+        test_methods = ["GET"]#, "POST", "PUT", "DELETE"]
+        test_pks_instance = ["1", "2"]
+        test_pks_set = ["1;2", "1,2"]
+        
+        for method in test_methods:
+            request.method = method
+            
+            for pks in test_pks_instance:
+                pass
+                #resource.dispatch_details(request, pks)
+            
+            for pks in test_pks_set:
+                pass
+                #resource.dispatch_details(request, pks)
+    
     def test_urls(self):
         resource = PearResource()
         

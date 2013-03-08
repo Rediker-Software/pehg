@@ -26,9 +26,18 @@ class Resource(object):
         return func(request)
     
     def dispatch_details(self, request, pks):
-        func = self._validate_request_type(request, "instance")
+        import re
         
-        return func(request)
+        pk_list = re.split("[\W;,]", pks)
+        
+        if len(pk_list) > 1:
+            func_type = "set"
+        else:
+            func_type = "instance"
+        
+        func = self._validate_request_type(request, func_type)
+        
+        #return func(request)
     
     def get_index(self, request):
         index_data = {}
