@@ -19,6 +19,7 @@ class Resource(object):
     allowed_methods = ["GET", "POST", "PUT", "DELETE"]
     
     data_set = None
+    api_fields = {}
     
     resource_name = None
     resource_name_plural = None
@@ -33,7 +34,7 @@ class Resource(object):
             self.data_set.resource_name = self.resource_name
         
         if not hasattr(self, "api_fields") and hasattr(self, "fields") and isinstance(self.fields, dict):
-            self.api_fields = self._validate_fields(self.fields)
+            self.api_fields = self._validate_init_fields(self.fields)
     
     @csrf_exempt
     def dispatch_index(self, request):
@@ -86,6 +87,7 @@ class Resource(object):
         
         data = json.loads(request_body)
         obj = self.data_set.unserialize_obj(data)
+        obj = self.validate_object(obj)
         
         self.data_set.create(**self.data_set.serialize_obj(obj))
         
@@ -106,7 +108,14 @@ class Resource(object):
         
         return url_patterns
     
-    def _validate_fields(self, fields):
+    def validate_object(self, obj):
+        for name, field in self.api_fields.iteritems():
+            value = getattr(obj, name)
+            cleaned_value = field.unserialize(value)
+        
+        return obj
+    
+    def _validate_init_fields(self, fields):
         api_fields = {}
         
         for name, field in fields.iteritems():

@@ -12,10 +12,7 @@ class Field(object):
         return value
     
     def unserialize(self, value):
-        try:
-            cleaned = self.form_field().clean(value)
-        except:
-            return None
+        cleaned = self.form_field().clean(value)
         
         return cleaned
 
