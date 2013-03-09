@@ -37,13 +37,13 @@ class Resource(object):
             self.api_fields = self._validate_init_fields(self.fields)
     
     @csrf_exempt
-    def dispatch_index(self, request):
+    def dispatch_index(self, request, content_type=None):
         func = self._validate_request_type(request, "index")
         
         return func(request)
     
     @csrf_exempt
-    def dispatch_details(self, request, pks):
+    def dispatch_details(self, request, pks, content_type=None):
         import re
         
         pk_list = re.split("[\W;,]", pks)
@@ -99,15 +99,17 @@ class Resource(object):
         
         return HttpCreated(location=uri)
     
-    def schema(self, request):
-        return JsonResponse()
+    def schema(self, request, content_type=None):
+        return JsonResponse(content_type)
     
     @property
     def urls(self):
         patterns_list = [
             url(r"^$", self.dispatch_index, name="%s_index" % (self.resource_name, )),
             url(r"^schema/$", self.schema, name="%s_schema" % (self.resource_name, )),
+            url(r"^schema.(?P<content_type>(json))$", self.schema, name="%s_schema_ct" % (self.resource_name, )),
             url(r"^(?P<pks>\w[\w/,;]*)/$", self.dispatch_details, name="%s_details" % (self.resource_name, )),
+            url(r"^(?P<pks>\w[\w/,;]*).(?P<content_type>(json))$", self.dispatch_details, name="%s_details_ct" % (self.resource_name, )),
         ]
         
         url_patterns = patterns("", *patterns_list)

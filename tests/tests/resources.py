@@ -88,7 +88,7 @@ class TestResources(TestCase):
     def test_urls(self):
         resource = PearResource()
         
-        self.assertEqual(len(resource.urls), 3)
+        self.assertEqual(len(resource.urls), 5)
     
     def test_validate_request_type(self):
         resource = PearResource()
