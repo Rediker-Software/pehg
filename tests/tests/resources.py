@@ -92,7 +92,7 @@ class TestResources(TestCase):
         
         request = HttpRequest()
         
-        test_methods = ["GET", "POST", "PUT", "DELETE"]
+        test_methods = ["GET"]#, "POST", "PUT", "DELETE"]
         test_dispatch = ["index", "set", "instance"]
         
         for method in test_methods:
@@ -100,9 +100,9 @@ class TestResources(TestCase):
             
             for dispatch in test_dispatch:
                 func = resource._validate_request_type(request, dispatch)
-                #meth = getattr(resource, "%s_%s" % (method.lower(), dispatch, ))
+                meth = getattr(resource, "%s_%s" % (method.lower(), dispatch, ))
                 
-                #self.assertEqual(func, meth)
+                self.assertEqual(func, meth)
 
 
 class TestModelResources(TestCase):
@@ -112,6 +112,7 @@ class TestModelResources(TestCase):
         apple.save()
         
         self.request = HttpRequest()
+        self.request._read_started = False
     
     def test_data_set(self):
         resource = AppleResource()
@@ -129,3 +130,11 @@ class TestModelResources(TestCase):
         
         response = resource.get_instance(self.request, 1)
         self.assertEqual(response.data_dict, {"id": 1, "name": "test"})
+    
+    def test_post_index(self):
+        resource = AppleResource()
+        
+        self.request._body = '{"name": "created"}'
+        response = resource.post_index(self.request)
+        
+        self.assertEqual(response.status_code, 201)

@@ -37,7 +37,7 @@ class DataSet:
         return serialized_data
     
     def serialize_obj(self, obj, fields=[]):
-        if not hasattr(obj, "resource_uri"):
+        if not hasattr(obj, "resource_uri") and hasattr(obj, self._primary_key):
             obj.resource_uri = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": getattr(obj, self._primary_key)})
         return obj.serialize()
 
@@ -100,7 +100,10 @@ class ModelDataSet(DataSet):
         return self.queryset.count()
     
     def create(self, *args, **kwargs):
-        pass
+        obj = self.model(*args, **kwargs)
+        obj.save()
+        
+        return obj
     
     def filter(self, *args, **kwargs):
         copied = copy.deepcopy(self)
@@ -121,3 +124,6 @@ class ModelDataSet(DataSet):
         from django.forms.models import model_to_dict
         
         return model_to_dict(obj, fields)
+    
+    def unserialize_obj(self, obj):
+        return self.model(**obj)

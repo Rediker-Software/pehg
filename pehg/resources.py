@@ -79,10 +79,15 @@ class Resource(object):
     def post_index(self, request):
         from .http import HttpCreated
         
-        data = json.loads(request.body)
+        try:
+            request_body = request.body
+        except AttributeError:
+            request_body = request.raw_post_data
+        
+        data = json.loads(request_body)
         obj = self.data_set.unserialize_obj(data)
         
-        self.data_set.create(**obj.serialize())
+        self.data_set.create(**self.data_set.serialize_obj(obj))
         
         return HttpCreated()
     
