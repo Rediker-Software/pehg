@@ -33,7 +33,7 @@ class TestResources(TestCase):
         
         request = HttpRequest()
         request._read_started = False
-        request._body = '{"name": "test"}'
+        request._body = request._raw_post_data = '{"name": "test"}'
         
         test_methods = ["GET", "POST"]
         
@@ -134,7 +134,7 @@ class TestModelResources(TestCase):
     def test_post_index(self):
         resource = AppleResource()
         
-        self.request._body = '{"name": "created"}'
+        self.request._body = self.request._raw_post_data = '{"name": "created"}'
         response = resource.post_index(self.request)
         
         self.assertEqual(response.status_code, 201)
