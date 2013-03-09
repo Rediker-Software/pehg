@@ -1,14 +1,14 @@
 from django.http import HttpRequest
 from django.test import TestCase
 
-from pehg.datasets import DataSet
+from pehg.datasets import DictionaryDataSet
 from pehg.resources import ModelResource, Resource
 from ..models import Apple
 
 
 class PearResource(Resource):
     resource_name = "pear"
-    data_set = DataSet([{"id": 1, "name": "test"}, {"id": 2, "name": "other"}])
+    data_set = DictionaryDataSet([{"id": 1, "name": "test"}, {"id": 2, "name": "other"}])
 
 
 class AppleResource(ModelResource):

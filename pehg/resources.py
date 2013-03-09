@@ -22,6 +22,9 @@ class Resource(object):
         
         if self.data_set:
             self.data_set.resource_name = self.resource_name
+        
+        if not hasattr(self, "api_fields") and hasattr(self, "fields") and isinstance(self.fields, dict):
+            self.api_fields = self._validate_fields(self.fields)
     
     def dispatch_index(self, request):
         func = self._validate_request_type(request, "index")
@@ -71,6 +74,14 @@ class Resource(object):
         
         return url_patterns
     
+    def _validate_fields(self, fields):
+        api_fields = {}
+        
+        for name, field in fields:
+            api_fields[name] = field
+        
+        return api_fields
+    
     def _validate_request_type(self, request, dispatch_type):
         request_type = request.method
         request_type = request_type.upper()
@@ -116,5 +127,7 @@ class ModelResource(Resource):
             
             if internal_type in ("CharField", ):
                 api_field = fields.CharField()
-                
+            
+            api_fields[field.name] = api_field
+            
         self.api_fields = api_fields

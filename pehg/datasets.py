@@ -6,9 +6,6 @@ class DataSet:
     
     def __init__(self, data_list, pk="id"):
         self.data = data_list
-        
-        self._primary_key = pk
-        self._recreate_dict_by_pk(pk)
     
     def count(self):
         return len(self.data)
@@ -21,7 +18,7 @@ class DataSet:
         return copied
     
     def get(self, pk):
-        return self.data_dict[pk]
+        pass
     
     def serialize_list(self, fields=[]):
         serialized_data = []
@@ -34,12 +31,32 @@ class DataSet:
         return serialized_data
     
     def serialize_obj(self, obj, fields=[]):
-        if not "resource_uri" in obj:
-            obj["resource_uri"] = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": obj[self._primary_key]})
-        return obj
+        if not hasattr(obj, "resource_uri"):
+            obj.resource_uri = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": getattr(obj, self._primary_key)})
+        return obj.internal_dict
+
+
+class DictionaryDataSet(DataSet):
+    
+    def __init__(self, dictionary_list, pk="id"):
+        from .data_objects import DictionaryDataObject
+        
+        data_list = []
+        
+        for dictionary in dictionary_list:
+            obj = DictionaryDataObject(dictionary)
+            data_list.append(obj)
+        
+        self.data = data_list
+        
+        self._primary_key = pk
+        self._recreate_dict_by_pk(pk)
+    
+    def get(self, pk):
+        return self.data_dict[pk]
     
     def _recreate_dict_by_pk(self, pk):
-        self.data_dict = dict((str(obj[pk]), obj) for obj in self.data)
+        self.data_dict = dict((str(getattr(obj, pk)), obj) for obj in self.data)
 
 
 class ModelDataSet(DataSet):
