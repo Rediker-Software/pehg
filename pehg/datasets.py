@@ -10,6 +10,9 @@ class DataSet:
     def count(self):
         return len(self.data)
     
+    def create(self, *args, **kwargs):
+        pass
+    
     def filter(self, *args, **kwargs):
         copied = copy.deepcopy(self)
         
@@ -19,6 +22,9 @@ class DataSet:
     
     def get(self, pk):
         pass
+    
+    def is_valid(self, obj, validator):
+        return validator.is_valid(obj)
     
     def serialize_list(self, fields=[]):
         serialized_data = []
@@ -52,8 +58,33 @@ class DictionaryDataSet(DataSet):
         self._primary_key = pk
         self._recreate_dict_by_pk(pk)
     
+    def create(self, *args, **kwargs):
+        data = self.unserialize_obj(kwargs)
+        pk = self.next_pk()
+        
+        setattr(data, self._primary_key, pk)
+        self.data_dict[pk] = data
+        self.data.append(data)
+        
+        return data
+    
     def get(self, pk):
         return self.data_dict[pk]
+    
+    def next_pk(self):
+        highest_int = 0
+        
+        for obj in self.data:
+            if obj.id > highest_int:
+                highest_int = obj.id
+        
+        return highest_int + 1
+    
+    def unserialize_obj(self, obj):
+        from .data_objects import DictionaryDataObject
+        
+        data = DictionaryDataObject(obj)
+        return data
     
     def _recreate_dict_by_pk(self, pk):
         self.data_dict = dict((str(getattr(obj, pk)), obj) for obj in self.data)
@@ -67,6 +98,9 @@ class ModelDataSet(DataSet):
     
     def count(self):
         return self.queryset.count()
+    
+    def create(self, *args, **kwargs):
+        pass
     
     def filter(self, *args, **kwargs):
         copied = copy.deepcopy(self)

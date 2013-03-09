@@ -1,5 +1,7 @@
+from django.views.decorators.csrf import csrf_exempt
 from .datasets import ModelDataSet
 from .http import JsonResponse
+from .validators import Validator
 
 try:
     from django.conf.urls import patterns, url
@@ -16,6 +18,8 @@ class Resource(object):
     resource_name = None
     resource_name_plural = None
     
+    validator = Validator()
+    
     def __init__(self, *args, **kwargs):
         if not self.resource_name_plural:
             self.resource_name_plural = self.resource_name + "s"
@@ -26,11 +30,13 @@ class Resource(object):
         if not hasattr(self, "api_fields") and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_fields(self.fields)
     
+    @csrf_exempt
     def dispatch_index(self, request):
         func = self._validate_request_type(request, "index")
         
         return func(request)
     
+    @csrf_exempt
     def dispatch_details(self, request, pks):
         import re
         
@@ -67,6 +73,11 @@ class Resource(object):
     
     def post_index(self, request):
         from .http import HttpCreated
+        import json
+        
+        data = json.loads(request.body)
+        obj = self.data_set.unserialize_obj(data)
+        self.data_set.create(*obj.serialize())
         
         return HttpCreated()
     

@@ -28,3 +28,6 @@ class DictionaryDataObject(DataObject):
     
     def serialize(self):
         return self.internal_dict
+    
+    def unserialize(self, serialized_dict):
+        self.internal_dict = serialized_dict
