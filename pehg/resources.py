@@ -33,7 +33,7 @@ class Resource(object):
         if self.data_set:
             self.data_set.resource_name = self.resource_name
         
-        if not hasattr(self, "api_fields") and hasattr(self, "fields") and isinstance(self.fields, dict):
+        if not self.api_fields and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_init_fields(self.fields)
     
     @csrf_exempt
@@ -78,6 +78,7 @@ class Resource(object):
         return JsonResponse(data_list)
     
     def post_index(self, request):
+        from django.core.exceptions import ValidationError
         from .http import HttpCreated
         
         try:
@@ -87,7 +88,10 @@ class Resource(object):
         
         data = json.loads(request_body)
         obj = self.data_set.unserialize_obj(data)
-        obj = self.validate_object(obj)
+        try:
+            obj = self.validate_object(obj)
+        except ValidationError, e:
+            return JsonResponse({"errors": e.messages})
         
         self.data_set.create(**self.data_set.serialize_obj(obj))
         
@@ -109,9 +113,22 @@ class Resource(object):
         return url_patterns
     
     def validate_object(self, obj):
+        from django.core.exceptions import ValidationError
+        
+        errors = {}
+        
         for name, field in self.api_fields.iteritems():
             value = getattr(obj, name)
-            cleaned_value = field.unserialize(value)
+            try:
+                cleaned_value = field.unserialize(value)
+            except ValidationError, e:
+                errors[name] = e.messages
+        
+        if errors:
+            error = ValidationError("There were multiple errors when validating the data.")
+            error.messages = errors
+            
+            raise error
         
         return obj
     
