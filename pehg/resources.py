@@ -19,6 +19,9 @@ class Resource(object):
     def __init__(self, *args, **kwargs):
         if not self.resource_name_plural:
             self.resource_name_plural = self.resource_name + "s"
+        
+        if self.data_set:
+            self.data_set.resource_name = self.resource_name
     
     def dispatch_index(self, request):
         func = self._validate_request_type(request, "index")
@@ -60,8 +63,8 @@ class Resource(object):
     def urls(self):
         patterns_list = [
             url(r"^$", self.dispatch_index, name="%s_index" % (self.resource_name, )),
-            url(r"^(?P<pks>\w[\w/,;]*)/$", self.dispatch_details, name="%s_details" % (self.resource_name, )),
             url(r"^schema/$", self.schema, name="%s_schema" % (self.resource_name, )),
+            url(r"^(?P<pks>\w[\w/,;]*)/$", self.dispatch_details, name="%s_details" % (self.resource_name, )),
         ]
         
         url_patterns = patterns("", *patterns_list)
@@ -90,7 +93,7 @@ class Resource(object):
 class ModelResource(Resource):
     
     def __init__(self, *args, **kwargs):
-        super(ModelResource, self).__init__(*args, **kwargs)
-        
         if not self.data_set:
             self.data_set = ModelDataSet(self.model)
+        
+        super(ModelResource, self).__init__(*args, **kwargs)

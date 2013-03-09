@@ -19,6 +19,15 @@ class AppleResource(ModelResource):
 
 class TestResources(TestCase):
     
+    def setUp(self):
+        from django.core import urlresolvers
+        from pehg.api import Api
+        
+        api = Api()
+        api.register_resource(PearResource())
+        
+        urlresolvers.get_resolver = lambda x: urlresolvers.RegexURLResolver(r'^api/', api.urls)
+    
     def test_dispatch_index(self):
         resource = PearResource()
         

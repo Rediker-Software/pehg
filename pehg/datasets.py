@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 import copy
 
 
@@ -5,6 +6,8 @@ class DataSet:
     
     def __init__(self, data_list, pk="id"):
         self.data = data_list
+        
+        self._primary_key = pk
         self._recreate_dict_by_pk(pk)
     
     def count(self):
@@ -21,9 +24,18 @@ class DataSet:
         return self.data_dict[pk]
     
     def serialize_list(self, fields=[]):
-        return self.data
+        serialized_data = []
+        
+        for obj in self.data:
+            serialized = self.serialize_obj(obj, fields)
+            
+            serialized_data.append(serialized)
+        
+        return serialized_data
     
     def serialize_obj(self, obj, fields=[]):
+        if not "resource_uri" in obj:
+            obj["resource_uri"] = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": obj[self._primary_key]})
         return obj
     
     def _recreate_dict_by_pk(self, pk):
