@@ -96,4 +96,25 @@ class ModelResource(Resource):
         if not self.data_set:
             self.data_set = ModelDataSet(self.model)
         
+        self._convert_model_to_pehg_fields(self.model)
+        
         super(ModelResource, self).__init__(*args, **kwargs)
+    
+    def _convert_model_to_pehg_fields(self, model):
+        from . import fields
+        
+        api_fields = {}
+        
+        for field in model._meta.fields:
+            if hasattr(self, "fields"):
+                if not field.name in self.fields:
+                    continue
+            
+            internal_type = field.get_internal_type()
+            
+            api_field = fields.Field()
+            
+            if internal_type in ("CharField", ):
+                api_field = fields.CharField()
+                
+        self.api_fields = api_fields
