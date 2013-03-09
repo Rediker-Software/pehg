@@ -171,6 +171,15 @@ class ModelResource(Resource):
         
         super(ModelResource, self).__init__(*args, **kwargs)
     
+    def get_set(self, request, pks):
+        import re
+        
+        pk_list = re.split("[\W;,]", pks)
+        
+        data_list = self.data_set.filter(pk__in=pk_list)
+        
+        return JsonResponse(data_list.serialize_list())
+    
     def _convert_model_to_pehg_fields(self, model):
         from . import fields
         
