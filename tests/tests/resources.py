@@ -1,8 +1,11 @@
+from __future__ import with_statement
+
 from django.http import HttpRequest
 from django.test import TestCase
 
 from pehg.datasets import DictionaryDataSet
 from pehg.resources import ModelResource, Resource
+
 from ..models import Apple
 
 
