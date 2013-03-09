@@ -32,6 +32,8 @@ class TestResources(TestCase):
         resource = PearResource()
         
         request = HttpRequest()
+        request._read_started = False
+        request._body = '{"name": "test"}'
         
         test_methods = ["GET", "POST"]
         
@@ -77,7 +79,8 @@ class TestResources(TestCase):
         request.method = "GET"
         
         response = resource.get_index(request)
-        self.assertEqual(len(response.data_dict["pears"]), 2)
+        
+        self.assertEqual(len(response.data_dict["pears"]), len(resource.data_set.data_dict))
     
     def test_urls(self):
         resource = PearResource()

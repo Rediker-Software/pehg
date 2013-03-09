@@ -8,6 +8,11 @@ try:
 except ImportError:
     from django.conf.urls.defaults import patterns, url
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 
 class Resource(object):
     
@@ -73,11 +78,11 @@ class Resource(object):
     
     def post_index(self, request):
         from .http import HttpCreated
-        import json
         
         data = json.loads(request.body)
         obj = self.data_set.unserialize_obj(data)
-        self.data_set.create(*obj.serialize())
+        
+        self.data_set.create(**obj.serialize())
         
         return HttpCreated()
     
