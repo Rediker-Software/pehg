@@ -127,14 +127,16 @@ class TestModelResources(TestCase):
     def test_get_index(self):
         resource = AppleResource()
         
-        response = resource.get_index(self.request)
-        self.assertEqual(len(response.data_dict["apples"]), 2)
+        with self.assertNumQueries(1):
+            response = resource.get_index(self.request)
+            self.assertEqual(len(response.data_dict["apples"]), 2)
     
     def test_get_instance(self):
         resource = AppleResource()
         
-        response = resource.get_instance(self.request, 1)
-        self.assertEqual(response.data_dict, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})
+        with self.assertNumQueries(1):
+            response = resource.get_instance(self.request, 1)
+            self.assertEqual(response.data_dict, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})
     
     def test_get_set(self):
         resource = AppleResource()
@@ -146,7 +148,8 @@ class TestModelResources(TestCase):
     def test_post_index(self):
         resource = AppleResource()
         
-        self.request._body = self.request._raw_post_data = '{"name": "created"}'
-        response = resource.post_index(self.request)
-        
-        self.assertEqual(response.status_code, 201)
+        with self.assertNumQueries(1):
+            self.request._body = self.request._raw_post_data = '{"name": "created"}'
+            response = resource.post_index(self.request)
+            
+            self.assertEqual(response.status_code, 201)
