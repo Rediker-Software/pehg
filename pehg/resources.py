@@ -51,7 +51,7 @@ class Resource(object):
         return HttpCreated()
     
     def get_instance(self, request, pk):
-        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk)))
+        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
     
     @property
     def urls(self):

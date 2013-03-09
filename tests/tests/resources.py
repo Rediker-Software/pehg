@@ -50,13 +50,22 @@ class TestResources(TestCase):
             for pk in test_pks_instance:
                 dispatch_response = resource.dispatch_details(request, pk)
                 method_response = getattr(resource, "%s_instance" % (method.lower(), ))(request, pk)
-            
+                
                 self.assertEqual(str(dispatch_response), str(method_response))
                 self.assertEqual(type(dispatch_response), type(method_response))
             
             for pks in test_pks_set:
                 pass
                 #resource.dispatch_details(request, pks)
+    
+    def test_get_index(self):
+        resource = PearResource()
+        
+        request = HttpRequest()
+        request.method = "GET"
+        
+        response = resource.get_index(request)
+        self.assertEqual(len(response.data_dict["pears"]), 2)
     
     def test_urls(self):
         resource = PearResource()
@@ -76,6 +85,9 @@ class TestResources(TestCase):
             
             for dispatch in test_dispatch:
                 func = resource._validate_request_type(request, dispatch)
+                #meth = getattr(resource, "%s_%s" % (method.lower(), dispatch, ))
+                
+                #self.assertEqual(func, meth)
 
 
 class TestModelResources(TestCase):
@@ -96,3 +108,9 @@ class TestModelResources(TestCase):
         
         response = resource.get_index(self.request)
         self.assertEqual(len(response.data_dict["apples"]), 1)
+    
+    def test_get_instance(self):
+        resource = AppleResource()
+        
+        response = resource.get_instance(self.request, 1)
+        self.assertEqual(response.data_dict, {"id": 1, "name": "test"})
