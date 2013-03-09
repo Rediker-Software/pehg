@@ -33,7 +33,7 @@ class DataSet:
     def serialize_obj(self, obj, fields=[]):
         if not hasattr(obj, "resource_uri"):
             obj.resource_uri = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": getattr(obj, self._primary_key)})
-        return obj.internal_dict
+        return obj.serialize()
 
 
 class DictionaryDataSet(DataSet):

@@ -54,6 +54,17 @@ class Resource(object):
     def get_instance(self, request, pk):
         return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
     
+    def get_set(self, request, pks):
+        import re
+        
+        pk_list = re.split("[\W;,]", pks)
+        data_list = []
+        
+        for pk in pk_list:
+            data_list.append(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
+        
+        return JsonResponse(data_list)
+    
     def post_index(self, request):
         from .http import HttpCreated
         
@@ -77,7 +88,7 @@ class Resource(object):
     def _validate_fields(self, fields):
         api_fields = {}
         
-        for name, field in fields:
+        for name, field in fields.iteritems():
             api_fields[name] = field
         
         return api_fields

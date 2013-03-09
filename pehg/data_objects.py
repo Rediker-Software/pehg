@@ -25,3 +25,6 @@ class DictionaryDataObject(DataObject):
             return super(DictionaryDataObject, self).__setattr__(key, value)
         
         self.internal_dict[key] = value
+    
+    def serialize(self):
+        return self.internal_dict

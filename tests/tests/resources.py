@@ -8,7 +8,7 @@ from ..models import Apple
 
 class PearResource(Resource):
     resource_name = "pear"
-    data_set = DictionaryDataSet([{"id": 1, "name": "test"}, {"id": 2, "name": "other"}])
+    data_set = DictionaryDataSet([{"id": 1, "name": "test"}, {"id": 2, "name": "other"},])
 
 
 class AppleResource(ModelResource):
@@ -64,8 +64,11 @@ class TestResources(TestCase):
                 self.assertEqual(type(dispatch_response), type(method_response))
             
             for pks in test_pks_set:
-                pass
-                #resource.dispatch_details(request, pks)
+                dispatch_response = resource.dispatch_details(request, pks)
+                method_response = getattr(resource, "%s_set" % (method.lower(), ))(request, pks)
+                
+                self.assertEqual(str(dispatch_response), str(method_response))
+                self.assertEqual(type(dispatch_response), type(method_response))
     
     def test_get_index(self):
         resource = PearResource()
