@@ -24,7 +24,7 @@ class Api:
         for resource_name, resource in self._resources.iteritems():
             resource_data[resource_name] = {}
             resource_data[resource_name]["list"] = reverse("%s_index" % (resource_name, ))
-            resource_data[resource_name]["schema"] = None
+            resource_data[resource_name]["schema"] = reverse("%s_schema" % (resource_name, ))
         
         return JsonResponse(resource_data)
     

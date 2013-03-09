@@ -45,19 +45,23 @@ class Resource(object):
         
         return JsonResponse(index_data)
     
+    def get_instance(self, request, pk):
+        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
+    
     def post_index(self, request):
         from .http import HttpCreated
         
         return HttpCreated()
     
-    def get_instance(self, request, pk):
-        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
+    def schema(self, request):
+        return JsonResponse()
     
     @property
     def urls(self):
         patterns_list = [
             url(r"^$", self.dispatch_index, name="%s_index" % (self.resource_name, )),
             url(r"^(?P<pks>\w[\w/,;]*)/$", self.dispatch_details, name="%s_details" % (self.resource_name, )),
+            url(r"^schema/$", self.schema, name="%s_schema" % (self.resource_name, )),
         ]
         
         url_patterns = patterns("", *patterns_list)

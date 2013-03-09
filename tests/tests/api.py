@@ -34,6 +34,11 @@ class TestApi(TestCase):
         
         api.register_resource(AppleResource())
         response = api.get_index(HttpRequest())
+        self.assertEqual(response.data_dict, {"apple": {"list": "/v1/apple/", "schema": "/v1/apple/schema/"}})
+        
+        api.register_resource(PearResource())
+        response = api.get_index(HttpRequest())
+        self.assertEqual(response.data_dict, {"apple": {"list": "/v1/apple/", "schema": "/v1/apple/schema/"}, "pear": {"list": "/v1/pear/", "schema": "/v1/pear/schema/"}})
     
     def test_register_resource(self):
         api = Api()
