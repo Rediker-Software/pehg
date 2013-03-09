@@ -8,7 +8,7 @@ from ..models import Apple
 
 class PearResource(Resource):
     resource_name = "pear"
-    data_set = DataSet([{"id": 1, "name": "test"}])
+    data_set = DataSet([{"id": 1, "name": "test"}, {"id": 2, "name": "other"}])
 
 
 class AppleResource(ModelResource):
@@ -47,9 +47,12 @@ class TestResources(TestCase):
         for method in test_methods:
             request.method = method
             
-            for pks in test_pks_instance:
-                pass
-                #resource.dispatch_details(request, pks)
+            for pk in test_pks_instance:
+                dispatch_response = resource.dispatch_details(request, pk)
+                method_response = getattr(resource, "%s_instance" % (method.lower(), ))(request, pk)
+            
+                self.assertEqual(str(dispatch_response), str(method_response))
+                self.assertEqual(type(dispatch_response), type(method_response))
             
             for pks in test_pks_set:
                 pass

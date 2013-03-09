@@ -37,7 +37,7 @@ class Resource(object):
         
         func = self._validate_request_type(request, func_type)
         
-        #return func(request)
+        return func(request, pks)
     
     def get_index(self, request):
         index_data = {}
@@ -49,6 +49,9 @@ class Resource(object):
         from .http import HttpCreated
         
         return HttpCreated()
+    
+    def get_instance(self, request, pk):
+        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk)))
     
     @property
     def urls(self):

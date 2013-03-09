@@ -33,6 +33,14 @@ class TestModelDataSet(TestCase):
         self.assertEqual(len(empty.queryset), 0)
         self.assertNotEqual(empty, data)
     
+    def test_get(self):
+        data = ModelDataSet(Apple)
+        apple = Apple(name="test")
+        apple.save()
+        
+        check = data.get(id=1)
+        self.assertEqual(apple, check)
+    
     def test_serialize_list(self):
         data = ModelDataSet(Apple)
         self.assertEqual(len(data.serialize_list()), 0)

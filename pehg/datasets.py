@@ -3,8 +3,9 @@ import copy
 
 class DataSet:
     
-    def __init__(self, data_list):
+    def __init__(self, data_list, pk="id"):
         self.data = data_list
+        self._recreate_dict_by_pk(pk)
     
     def count(self):
         return len(self.data)
@@ -16,11 +17,17 @@ class DataSet:
         
         return copied
     
+    def get(self, pk):
+        return self.data_dict[pk]
+    
     def serialize_list(self, fields=[]):
         return self.data
     
     def serialize_obj(self, obj, fields=[]):
-        pass
+        return obj
+    
+    def _recreate_dict_by_pk(self, pk):
+        self.data_dict = dict((str(obj[pk]), obj) for obj in self.data)
 
 
 class ModelDataSet(DataSet):
@@ -38,6 +45,9 @@ class ModelDataSet(DataSet):
         copied.queryset = copied.queryset.filter(*args, **kwargs)
         
         return copied
+    
+    def get(self, *args, **kwargs):
+        return self.queryset.get(*args, **kwargs)
     
     def serialize_list(self, fields=[]):
         data_list = self.queryset.values(*fields)
