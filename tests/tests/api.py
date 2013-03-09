@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 from django.test import TestCase
 
@@ -14,6 +15,15 @@ class PearResource(Resource):
 
 
 class TestApi(TestCase):
+    
+    def setUp(self):
+        from django.core import urlresolvers
+        
+        api = Api()
+        api.register_resource(AppleResource())
+        api.register_resource(PearResource())
+        
+        urlresolvers.get_resolver = lambda x: urlresolvers.RegexURLResolver(r'^api/', api.urls)
     
     def test_get_index(self):
         api = Api()

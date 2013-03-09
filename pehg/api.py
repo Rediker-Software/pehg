@@ -1,3 +1,4 @@
+from django.core.urlresolvers import reverse
 from .http import JsonResponse
 
 try:
@@ -22,7 +23,7 @@ class Api:
         
         for resource_name, resource in self._resources.iteritems():
             resource_data[resource_name] = {}
-            resource_data[resource_name]["list"] = None
+            resource_data[resource_name]["list"] = reverse("%s_index" % (resource_name, ))
             resource_data[resource_name]["schema"] = None
         
         return JsonResponse(resource_data)
