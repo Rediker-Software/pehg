@@ -63,7 +63,7 @@ class DictionaryDataSet(DataSet):
         pk = self.next_pk()
         
         setattr(data, self._primary_key, pk)
-        self.data_dict[pk] = data
+        self.data_dict[str(pk)] = data
         self.data.append(data)
         
         return data
@@ -100,7 +100,7 @@ class ModelDataSet(DataSet):
         return self.queryset.count()
     
     def create(self, *args, **kwargs):
-        obj = self.model(*args, **kwargs)
+        obj = self.unserialize_obj(kwargs)
         obj.save()
         
         return obj
@@ -123,7 +123,15 @@ class ModelDataSet(DataSet):
     def serialize_obj(self, obj, fields=[]):
         from django.forms.models import model_to_dict
         
-        return model_to_dict(obj, fields)
+        serialized = model_to_dict(obj, fields)
+        
+        if not "resource_uri" in serialized:
+            serialized["resource_uri"] = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": obj.pk})
+            
+        return serialized
     
     def unserialize_obj(self, obj):
+        if "resource_uri" in obj:
+            del obj["resource_uri"]
+        
         return self.model(**obj)

@@ -5,6 +5,16 @@ from ..models import Apple
 
 class TestModelDataSet(TestCase):
     
+    def setUp(self):
+        from django.core import urlresolvers
+        from pehg.api import Api
+        from .resources import AppleResource
+        
+        api = Api()
+        api.register_resource(AppleResource())
+        
+        urlresolvers.get_resolver = lambda x: urlresolvers.RegexURLResolver(r'^api/', api.urls)
+    
     def test_count(self):
         data = ModelDataSet(Apple)
         
@@ -55,11 +65,13 @@ class TestModelDataSet(TestCase):
     
     def test_serialize_obj(self):
         data = ModelDataSet(Apple)
+        data.resource_name = "apple"
+        
         apple = Apple(name="test")
         apple.save()
         
         serialized = data.serialize_obj(apple)
-        self.assertEqual(serialized, {"id": 1, "name": "test"})
+        self.assertEqual(serialized, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})
         
         serialized = data.serialize_obj(apple, ["name"])
-        self.assertEqual(serialized, {"name": "test"})
+        self.assertEqual(serialized, {"name": "test", "resource_uri": "/v1/apple/1/"})

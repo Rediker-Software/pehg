@@ -93,9 +93,11 @@ class Resource(object):
         except ValidationError, e:
             return JsonResponse({"errors": e.messages})
         
-        self.data_set.create(**self.data_set.serialize_obj(obj))
+        created = self.data_set.create(**self.data_set.serialize_obj(obj))
         
-        return HttpCreated()
+        uri = self.data_set.serialize_obj(created)["resource_uri"]
+        
+        return HttpCreated(location=uri)
     
     def schema(self, request):
         return JsonResponse()

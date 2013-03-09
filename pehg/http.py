@@ -8,6 +8,11 @@ except ImportError:
 
 class HttpCreated(HttpResponse):
     status_code = 201
+    
+    def __init__(self, location, *args, **kwargs):
+        super(HttpCreated, self).__init__(*args, **kwargs)
+        
+        self['Location'] = location
 
 
 class JsonResponse(HttpResponse):

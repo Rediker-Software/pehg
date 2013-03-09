@@ -43,7 +43,7 @@ class TestResources(TestCase):
             dispatch_response = resource.dispatch_index(request)
             method_response = getattr(resource, "%s_index" % (method.lower(), ))(request)
             
-            self.assertEqual(str(dispatch_response), str(method_response))
+            self.assertEqual(dispatch_response.status_code, method_response.status_code)
             self.assertEqual(type(dispatch_response), type(method_response))
     
     def test_dispatch_details(self):
@@ -129,7 +129,7 @@ class TestModelResources(TestCase):
         resource = AppleResource()
         
         response = resource.get_instance(self.request, 1)
-        self.assertEqual(response.data_dict, {"id": 1, "name": "test"})
+        self.assertEqual(response.data_dict, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})
     
     def test_post_index(self):
         resource = AppleResource()
