@@ -1,17 +1,13 @@
 from django.views.decorators.csrf import csrf_exempt
 from .datasets import ModelDataSet
 from .http import JsonResponse
+from .serializers import DEFAULT_SERIALIZERS, MultiSerializer
 from .validators import Validator
 
 try:
     from django.conf.urls import patterns, url
 except ImportError:
     from django.conf.urls.defaults import patterns, url
-
-try:
-    import simplejson as json
-except ImportError:
-    import json
 
 
 class Resource(object):
@@ -24,6 +20,7 @@ class Resource(object):
     resource_name = None
     resource_name_plural = None
     
+    serializer = MultiSerializer(DEFAULT_SERIALIZERS)
     validator = Validator()
     
     def __init__(self, *args, **kwargs):
@@ -40,7 +37,7 @@ class Resource(object):
     def dispatch_index(self, request, content_type=None):
         func = self._validate_request_type(request, "index")
         
-        return func(request)
+        return func(request, content_type)
     
     @csrf_exempt
     def dispatch_details(self, request, pks, content_type=None):
@@ -55,18 +52,18 @@ class Resource(object):
         
         func = self._validate_request_type(request, func_type)
         
-        return func(request, pks)
+        return func(request, pks, content_type)
     
-    def get_index(self, request):
+    def get_index(self, request, content_type=None):
         index_data = {}
         index_data[self.resource_name_plural] = self.data_set.serialize_list()
         
         return JsonResponse(index_data)
     
-    def get_instance(self, request, pk):
+    def get_instance(self, request, pk, content_type=None):
         return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
     
-    def get_set(self, request, pks):
+    def get_set(self, request, pks, content_type=None):
         import re
         
         pk_list = re.split("[\W;,]", pks)
@@ -75,9 +72,11 @@ class Resource(object):
         for pk in pk_list:
             data_list.append(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
         
-        return JsonResponse(data_list)
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        return self.serializer.serialize(data_list, format)
     
-    def post_index(self, request):
+    def post_index(self, request, content_type=None):
         from django.core.exceptions import ValidationError
         from .http import HttpCreated
         
@@ -86,7 +85,9 @@ class Resource(object):
         except AttributeError:
             request_body = request.raw_post_data
         
-        data = json.loads(request_body)
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        data = self.serializer.unserialize(request_body, format)
         obj = self.data_set.unserialize_obj(data)
         try:
             obj = self.validate_object(obj)
@@ -136,6 +137,32 @@ class Resource(object):
         
         return obj
     
+    def _determine_content_type_from_request(self, request, content_type=None):
+        request_ct = request.META.get("HTTP_ACCEPT", None)
+        
+        allowed_formats = self.serializer.content_types.keys()
+        allowed_cts = self.serializer.content_types.values()
+        
+        get_format = request.GET.get("format", None)
+        
+        if get_format and get_format in allowed_formats:
+            return self.serializer.content_types[get_format]
+        
+        if content_type and content_type in allowed_formats:
+            return self.serializer.content_types[content_type]
+        
+        if not request_ct or request_ct == "*/*":
+            return "application/json"
+        
+        ct_list = request_ct.split(";")
+        
+        for ct in ct_list:
+            if ct in allowed_cts:
+                return ct
+        
+        return "application/json"
+        
+    
     def _validate_init_fields(self, fields):
         api_fields = {}
         
@@ -173,7 +200,7 @@ class ModelResource(Resource):
         
         super(ModelResource, self).__init__(*args, **kwargs)
     
-    def get_set(self, request, pks):
+    def get_set(self, request, pks, content_type=None):
         import re
         
         pk_list = re.split("[\W;,]", pks)
