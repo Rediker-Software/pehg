@@ -1,10 +1,5 @@
 from django.http import HttpResponse
 
-try:
-    import simplejson as json
-except ImportError:
-    import json
-
 
 class HttpCreated(HttpResponse):
     status_code = 201
@@ -18,6 +13,11 @@ class HttpCreated(HttpResponse):
 class JsonResponse(HttpResponse):
     
     def __init__(self, data_dict, *args, **kwargs):
+        try:
+            import simplejson as json
+        except ImportError:
+            import json
+        
         super(JsonResponse, self).__init__(json.dumps(data_dict), mimetype="application/json", *args, **kwargs)
         
         self.data_dict = data_dict
@@ -26,6 +26,12 @@ class JsonResponse(HttpResponse):
 class XmlResponse(HttpResponse):
     
     def __init__(self, data_dict, *args, **kwargs):
-        super(XmlResponse, self).__init__(data_dict, mimetype="application/xml", *args, **kwargs)
+        from .serializers import XmlSerializer
+        from xml.etree import ElementTree
+        
+        serializer = XmlSerializer()
+        serialized = serializer._obj_to_xml(data_dict, root=True)
+        
+        super(XmlResponse, self).__init__(ElementTree.tostring(serialized), mimetype="application/xml", *args, **kwargs)
         
         self.data_dict = data_dict

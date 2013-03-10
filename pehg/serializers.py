@@ -3,7 +3,6 @@ try:
 except ImportError:
     import json
 
-from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 
@@ -40,21 +39,27 @@ class XmlSerializer(Serializer):
     def serialize(self, obj, format="application/xml"):
         from .http import XmlResponse
         
-        root = self._obj_to_xml(obj, root=True)
-        
-        return XmlResponse(ElementTree.tostring(root))
+        return XmlResponse(obj)
     
     def unserialize(self, data, format="application/xml"):
         return data
     
     def _obj_to_xml(self, obj, name=None, root=False):
-        xml_element = Element(name or "response")
+        if root:
+            xml_element = Element("response")
+        else:
+            xml_element = Element(name or "object")
         
         if isinstance(obj, dict):
             for key, value in obj.iteritems():
                 xml_element.append(self._obj_to_xml(value, key))
                 
         elif isinstance(obj, (list, tuple, )):
+            if root:
+                xml_element.append(self._obj_to_xml(obj))
+                
+                return xml_element
+            
             xml_element = Element(name or "objects")
             xml_element.set("type", "list")
             
