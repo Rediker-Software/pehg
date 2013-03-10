@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pehg.http import JsonResponse, XmlResponse
-from pehg.serializers import JsonSerializer, XmlSerializer
+from pehg.serializers import JsonSerializer, MultiSerializer, XmlSerializer
 
 
 class TestJsonSerializer(TestCase):
@@ -22,6 +22,41 @@ class TestJsonSerializer(TestCase):
         
         result = self.serializer.unserialize('["one", "two", "three"]')
         self.assertEqual(result, ["one", "two", "three"])
+
+
+class TestMultiSerializer(TestCase):
+    
+    def test_build_content_types(self):
+        serializer = MultiSerializer()
+        serializer.serializers = [JsonSerializer()]
+        serializer._build_content_types()
+        
+        self.assertEqual(serializer.content_types, JsonSerializer.content_types)
+        
+        serializer.serializers = [XmlSerializer()]
+        serializer._build_content_types()
+        self.assertEqual(serializer.content_types, XmlSerializer.content_types)
+        
+        serializer.serializers = [JsonSerializer(), XmlSerializer()]
+        serializer._build_content_types()
+        self.assertEqual(serializer.content_types, dict(XmlSerializer.content_types.items() + JsonSerializer.content_types.items()))
+    
+    def test_serializer_from_content_type(self):
+        tests = {
+            JsonSerializer: ["json", "application/json"],
+            XmlSerializer: ["xml", "application/xml"],
+        }
+        
+        for serializer, content_types in tests.iteritems():
+            ms = MultiSerializer([serializer()])
+            all_ms = MultiSerializer(tests.keys())
+            
+            for ct in content_types:
+                ser = ms._serializer_from_content_type(ct)
+                all_ser = all_ms._serializer_from_content_type(ct)
+                
+                self.assertTrue(isinstance(ser, serializer))
+                self.assertEqual(all_ser, serializer)
 
 
 class TestXmlSerializer(TestCase):

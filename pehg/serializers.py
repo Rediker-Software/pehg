@@ -105,6 +105,8 @@ class MultiSerializer(Serializer):
         return serializer.unserialize(data, format)
     
     def _build_content_types(self):
+        self.content_types = {}
+        
         for serializer in self.serializers:
             self.content_types.update(serializer.content_types)
     
