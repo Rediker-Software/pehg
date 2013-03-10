@@ -25,13 +25,16 @@ class JsonResponse(HttpResponse):
 
 class XmlResponse(HttpResponse):
     
-    def __init__(self, data_dict, *args, **kwargs):
+    def __init__(self, data_dict, encoding="utf-8", *args, **kwargs):
         from .serializers import XmlSerializer
         from xml.etree import ElementTree
         
         serializer = XmlSerializer()
         serialized = serializer._obj_to_xml(data_dict, root=True)
         
-        super(XmlResponse, self).__init__(ElementTree.tostring(serialized), mimetype="application/xml", *args, **kwargs)
+        content = '<?xml version="1.0" encoding="%s"?>%s' % (encoding, ElementTree.tostring(serialized, ), )
+        mime_type = "application/xml; charset=%s" % (encoding, )
+        
+        super(XmlResponse, self).__init__(content, mimetype=mime_type, *args, **kwargs)
         
         self.data_dict = data_dict
