@@ -18,6 +18,14 @@ class HttpCreated(HttpResponse):
 class JsonResponse(HttpResponse):
     
     def __init__(self, data_dict, *args, **kwargs):
-        super(JsonResponse, self).__init__(json.dumps(data_dict), mimetype="text/json", *args, **kwargs)
+        super(JsonResponse, self).__init__(json.dumps(data_dict), mimetype="application/json", *args, **kwargs)
+        
+        self.data_dict = data_dict
+
+
+class XmlResponse(HttpResponse):
+    
+    def __init__(self, data_dict, *args, **kwargs):
+        super(XmlResponse, self).__init__(data_dict, mimetype="application/xml", *args, **kwargs)
         
         self.data_dict = data_dict

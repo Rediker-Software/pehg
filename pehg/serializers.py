@@ -3,6 +3,9 @@ try:
 except ImportError:
     import json
 
+from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+
 
 class Serializer(object):
     
@@ -35,12 +38,33 @@ class XmlSerializer(Serializer):
     content_types = {"xml": "application/xml"}
    
     def serialize(self, obj, format="application/xml"):
-        from django.http.response import HttpResponse
+        from .http import XmlResponse
         
-        return HttpResponse(obj)
+        root = self._obj_to_xml(obj, root=True)
+        
+        return XmlResponse(ElementTree.tostring(root))
     
     def unserialize(self, data, format="application/xml"):
         return data
+    
+    def _obj_to_xml(self, obj, name=None, root=False):
+        xml_element = Element(name or "response")
+        
+        if isinstance(obj, dict):
+            for key, value in obj.iteritems():
+                xml_element.append(self._obj_to_xml(value, key))
+                
+        elif isinstance(obj, (list, tuple, )):
+            xml_element = Element(name or "objects")
+            xml_element.set("type", "list")
+            
+            for value in obj:
+                xml_element.append(self._obj_to_xml(value))
+        
+        elif isinstance(obj, (str, int, float, )):
+            xml_element.text = str(obj)
+            
+        return xml_element
 
 
 class MultiSerializer(Serializer):

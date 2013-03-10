@@ -46,7 +46,7 @@ class Api:
         for resource_name, resource in self._resources.iteritems():
             patterns_list += [
                 url(r"^%s/%s/" % (self.api_name, resource_name, ), include(resource.urls)),
-                url(r"^%s/%s.(?P<content_type>(json))" % (self.api_name, resource_name, ), resource.dispatch_index, name="%s_index_ct" % (resource_name, )),
+                url(r"^%s/%s.%s" % (self.api_name, resource_name, resource._content_types_urlconf()), resource.dispatch_index, name="%s_index_ct" % (resource_name, )),
             ]
         
         urlpatterns = patterns("", *patterns_list)

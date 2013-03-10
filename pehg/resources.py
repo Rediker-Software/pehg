@@ -58,10 +58,14 @@ class Resource(object):
         index_data = {}
         index_data[self.resource_name_plural] = self.data_set.serialize_list()
         
-        return JsonResponse(index_data)
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        return self.serializer.serialize(index_data, format)
     
     def get_instance(self, request, pk, content_type=None):
-        return JsonResponse(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        return self.serializer.serialize(self.data_set.serialize_obj(self.data_set.get(pk=pk)), format)
     
     def get_set(self, request, pks, content_type=None):
         import re
@@ -108,9 +112,9 @@ class Resource(object):
         patterns_list = [
             url(r"^$", self.dispatch_index, name="%s_index" % (self.resource_name, )),
             url(r"^schema/$", self.schema, name="%s_schema" % (self.resource_name, )),
-            url(r"^schema.(?P<content_type>(json))$", self.schema, name="%s_schema_ct" % (self.resource_name, )),
+            url(r"^schema.%s$" % (self._content_types_urlconf()), self.schema, name="%s_schema_ct" % (self.resource_name, )),
             url(r"^(?P<pks>\w[\w/,;]*)/$", self.dispatch_details, name="%s_details" % (self.resource_name, )),
-            url(r"^(?P<pks>\w[\w/,;]*).(?P<content_type>(json))$", self.dispatch_details, name="%s_details_ct" % (self.resource_name, )),
+            url(r"^(?P<pks>\w[\w/,;]*).%s$" % (self._content_types_urlconf()), self.dispatch_details, name="%s_details_ct" % (self.resource_name, )),
         ]
         
         url_patterns = patterns("", *patterns_list)
@@ -136,6 +140,11 @@ class Resource(object):
             raise error
         
         return obj
+    
+    def _content_types_urlconf(self):
+        types = "|".join(self.serializer.content_types.keys())
+        
+        return r"(?P<content_type>(%s))" % (types, )
     
     def _determine_content_type_from_request(self, request, content_type=None):
         request_ct = request.META.get("HTTP_ACCEPT", None)
@@ -206,7 +215,9 @@ class ModelResource(Resource):
         
         data_list = self.data_set.filter(pk__in=pk_list)
         
-        return JsonResponse(data_list.serialize_list())
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        return self.serializer.serialize(data_list.serialize_list(), format)
     
     def _convert_model_to_pehg_fields(self, model):
         from . import fields
