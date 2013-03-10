@@ -154,7 +154,7 @@ class Resource(object):
         if not request_ct or request_ct == "*/*":
             return "application/json"
         
-        ct_list = request_ct.split(";")
+        ct_list = request_ct.split(";")[0].split(",")
         
         for ct in ct_list:
             if ct in allowed_cts:
@@ -162,7 +162,6 @@ class Resource(object):
         
         return "application/json"
         
-    
     def _validate_init_fields(self, fields):
         api_fields = {}
         

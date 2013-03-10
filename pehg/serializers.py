@@ -30,6 +30,19 @@ class JsonSerializer(Serializer):
         return obj
 
 
+class XmlSerializer(Serializer):
+   
+    content_types = {"xml": "application/xml"}
+   
+    def serialize(self, obj, format="application/xml"):
+        from django.http.response import HttpResponse
+        
+        return HttpResponse(obj)
+    
+    def unserialize(self, data, format="application/xml"):
+        return data
+
+
 class MultiSerializer(Serializer):
     
     def __init__(self, serializers=[]):
@@ -67,13 +80,13 @@ class MultiSerializer(Serializer):
             self.content_types.update(serializer.content_types)
     
     def _serializer_from_content_type(self, content_type):
-        reverse_content_types = dict((v,k) for k, v in self.content_types.iteritems())
-        
         for serializer in self.serializers:
-            if content_type in self.content_types:
+            reverse_content_types = dict((v, k) for k, v in serializer.content_types.iteritems())
+            
+            if content_type in serializer.content_types:
                 return serializer
                 
             if content_type in reverse_content_types:
                 return serializer
 
-DEFAULT_SERIALIZERS = [JsonSerializer()]
+DEFAULT_SERIALIZERS = [JsonSerializer(), XmlSerializer()]
