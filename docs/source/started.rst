@@ -50,14 +50,38 @@ This will clone the Pehg repository on GitHub and run the installer which is inc
 Setting up the API
 ------------------
 
-We recommend placing the components for your API in a file called api.py in your application folder, but you can place them anywhere in your project.  Pehg provides a simple method of versioning using the Api object.::
+We recommend placing the components for your API in a file called api.py in your application folder, but you can place them anywhere in your project.  Pehg provides a simple method of versioning using the Resource object.::
 
    # app/api.py
    from pehg.resources import ModelResource
-   from .model import Apple
+   from .models import Apple
    
    class AppleResource(ModelResource):
         model = Apple
         resource_name = "apple"
 
-In this example we are using a ModelResource that is attached to an Apple model.
+In this example we are using a ModelResource that is attached to an Apple model.  Apple is a simple model with a few fields which aren't as important, the Resource will be set up to match the fields on the Model.
+
+Pehg also comes with an Api object which can be used to manage multiple resources at once.::
+
+   # app/urls.py
+   from django.conf.urls import patterns, url
+   from pehg.api import Api
+   from .api import AppleResource
+   
+   api = new Api()
+   api.register_resource(AppleResource())
+   
+   urlpatterns = patterns("",
+       url(r"api/", include(api.urls),
+       url(r"apples/", includes(AppleResource().urls)),
+   )
+
+You can use the Api objects to combine mutliple resources under one roof (in this example we are only using the single AppleResource) or you can hook up individular resources to your urlconf.  This gives you the flexibility of determining where you want certain resources to be accessed from.
+
+After adding the urls to the urlconf, quite a few new urls are avaialble to you:
+
+* http://localhost:8000/api/v1/
+* http://localhost:8000/api/v1/apple.json
+* http://localhost:8000/api/v1/apple.xml
+* http://localhost:8000/api/v1/apple/
