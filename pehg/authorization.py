@@ -16,13 +16,13 @@ class Authorization(object):
 class DjangoAuthorization(Authorization):
     
     def can_create(self, user, resource):
-        return user.has_permission(self._build_permission(resource.model, "create"))
+        return user.has_perm(self._build_permission(resource.model, "add"))
     
     def can_delete(self, user, resource, data_object):
-        return user.has_permission(self._build_permission(resource.model, "delete"))
+        return user.has_perm(self._build_permission(resource.model, "delete"))
     
     def can_edit(self, user, resource, data_object):
-        return user.has_permission(self._build_permission(resource.model, "change"))
+        return user.has_perm(self._build_permission(resource.model, "change"))
     
     def can_view(self, user, resource, data_object):
         return True
@@ -31,7 +31,7 @@ class DjangoAuthorization(Authorization):
         app_label = model._meta.app_label
         model_name = model._meta.object_name
         
-        permission = "%s.%s_%s" % (app_label, model_name, permission_name, )
+        permission = "%s.%s_%s" % (app_label, permission_name, model_name.lower(), )
         
         return permission
 

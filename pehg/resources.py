@@ -38,17 +38,21 @@ class Resource(object):
         if not self.api_fields and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_init_fields(self.fields)
     
-    def can_create(self, user):
-        self.authorization.can_create(user, self)
+    def can_create(self, request):
+        user = self.authentication.get_user(request)
+        return self.authorization.can_create(user, self)
     
-    def can_delete(self, user, data_object):
-        self.authorization.can_delete(user, self, data_object)
+    def can_delete(self, request, data_object):
+        user = self.authentication.get_user(request)
+        return self.authorization.can_delete(user, self, data_object)
     
-    def can_edit(self, user, data_object):
-        self.authorization.can_edit(user, self, data_object)
+    def can_edit(self, request, data_object):
+        user = self.authentication.get_user(request)
+        return self.authorization.can_edit(user, self, data_object)
     
-    def can_view(self, user, data_object):
-        self.authorization.can_view(user, self, data_object)
+    def can_view(self, request, data_object):
+        user = self.authentication.get_user(request)
+        return self.authorization.can_view(user, self, data_object)
     
     @csrf_exempt
     def dispatch_details(self, request, pks, content_type=None):
@@ -100,6 +104,9 @@ class Resource(object):
     def post_index(self, request, content_type=None):
         from django.core.exceptions import ValidationError
         from .http import HttpCreated
+        
+        if not self.can_create(request):
+            raise Exception("Not allowed to create on resource")
         
         try:
             request_body = request.body
