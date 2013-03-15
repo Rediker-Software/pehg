@@ -1,4 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
+from .authentication import NoAuthentication
+from .authorization import NoAuthorization
 from .datasets import ModelDataSet
 from .http import JsonResponse
 from .serializers import DEFAULT_SERIALIZERS, MultiSerializer
@@ -23,6 +25,9 @@ class Resource(object):
     serializer = MultiSerializer(DEFAULT_SERIALIZERS)
     validator = Validator()
     
+    authentication = NoAuthentication()
+    authorization = NoAuthorization()
+    
     def __init__(self, *args, **kwargs):
         if not self.resource_name_plural:
             self.resource_name_plural = self.resource_name + "s"
@@ -33,11 +38,17 @@ class Resource(object):
         if not self.api_fields and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_init_fields(self.fields)
     
-    @csrf_exempt
-    def dispatch_index(self, request, content_type=None):
-        func = self._validate_request_type(request, "index")
-        
-        return func(request, content_type)
+    def can_create(self, user):
+        self.authorization.can_create(user, self)
+    
+    def can_delete(self, user, data_object):
+        self.authorization.can_delete(user, self, data_object)
+    
+    def can_edit(self, user, data_object):
+        self.authorization.can_edit(user, self, data_object)
+    
+    def can_view(self, user, data_object):
+        self.authorization.can_view(user, self, data_object)
     
     @csrf_exempt
     def dispatch_details(self, request, pks, content_type=None):
@@ -53,6 +64,12 @@ class Resource(object):
         func = self._validate_request_type(request, func_type)
         
         return func(request, pks, content_type)
+    
+    @csrf_exempt
+    def dispatch_index(self, request, content_type=None):
+        func = self._validate_request_type(request, "index")
+        
+        return func(request, content_type)
     
     def get_index(self, request, content_type=None):
         index_data = {}
