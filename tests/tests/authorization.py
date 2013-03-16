@@ -6,6 +6,15 @@ from pehg.authorization import DjangoAuthorization, NoAuthorization
 from pehg.resources import ModelResource
 from ..models import Apple
 
+        
+class TestResource(ModelResource):
+    fields = ["name", ]
+    model = Apple
+    resource_name = "apple"
+
+    authentication = DjangoAuthentication()
+    authorization = DjangoAuthorization()
+
 
 class TestDjangoAuthorization(TestCase):
     
@@ -16,15 +25,6 @@ class TestDjangoAuthorization(TestCase):
         self.auth = DjangoAuthorization()
     
     def test_can_create(self):
-        
-        class TestResource(ModelResource):
-            fields = ["name", ]
-            model = Apple
-            resource_name = "apple"
-            
-            authentication = DjangoAuthentication()
-            authorization = DjangoAuthorization()
-        
         request = HttpRequest()
         request.user = self.user
         
@@ -35,11 +35,44 @@ class TestDjangoAuthorization(TestCase):
         
         permission = Permission.objects.get(codename="add_apple")
         self.user.user_permissions.add(permission)
-        self.user.save()
         
         del self.user._perm_cache
         
         response = self.auth.can_create(self.user, resource)
+        self.assertTrue(response)
+    
+    def test_can_delete(self):
+        request = HttpRequest()
+        request.user = self.user
+        
+        resource = TestResource()
+        
+        response = self.auth.can_delete(self.user, resource, None)
+        self.assertFalse(response)
+        
+        permission = Permission.objects.get(codename="delete_apple")
+        self.user.user_permissions.add(permission)
+        
+        del self.user._perm_cache
+        
+        response = self.auth.can_delete(self.user, resource, None)
+        self.assertTrue(response)
+    
+    def test_can_edit(self):
+        request = HttpRequest()
+        request.user = self.user
+        
+        resource = TestResource()
+        
+        response = self.auth.can_edit(self.user, resource, None)
+        self.assertFalse(response)
+        
+        permission = Permission.objects.get(codename="change_apple")
+        self.user.user_permissions.add(permission)
+        
+        del self.user._perm_cache
+        
+        response = self.auth.can_edit(self.user, resource, None)
         self.assertTrue(response)
     
     def test_can_view(self):
