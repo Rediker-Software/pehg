@@ -86,7 +86,11 @@ class Resource(object):
     def get_instance(self, request, pk, content_type=None):
         format = self._determine_content_type_from_request(request, content_type)
         
-        return self.serializer.serialize(self.data_set.serialize_obj(self.data_set.get(pk=pk)), format)
+        obj = self.data_set.get(pk=pk)
+        if not self.can_view(request, obj):
+            raise Exception("You do not have permission to view this resource.")
+        
+        return self.serializer.serialize(self.data_set.serialize_obj(obj), format)
     
     def get_set(self, request, pks, content_type=None):
         import re
@@ -95,7 +99,11 @@ class Resource(object):
         data_list = []
         
         for pk in pk_list:
-            data_list.append(self.data_set.serialize_obj(self.data_set.get(pk=pk)))
+            obj = self.data_set.get(pk=pk)
+            if not self.can_view(request, obj):
+                raise Exception("You do not have permission to view this resource.")
+                
+            data_list.append(self.data_set.serialize_obj(obj))
         
         format = self._determine_content_type_from_request(request, content_type)
         
