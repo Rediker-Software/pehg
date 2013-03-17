@@ -58,6 +58,9 @@ class Resource(object):
     def dispatch_details(self, request, pks, content_type=None):
         import re
         
+        if not self.is_authenticated(request):
+            raise Exception("You must be authenticated to view this resource")
+        
         pk_list = re.split("[\W;,]", pks)
         
         if len(pk_list) > 1:
@@ -71,6 +74,9 @@ class Resource(object):
     
     @csrf_exempt
     def dispatch_index(self, request, content_type=None):
+        if not self.is_authenticated(request):
+            raise Exception("You must be authenticated to view this resource")
+            
         func = self._validate_request_type(request, "index")
         
         return func(request, content_type)
@@ -109,6 +115,9 @@ class Resource(object):
         
         return self.serializer.serialize(data_list, format)
     
+    def is_authenticated(self, request):
+        return self.authentication.is_authenticated(request)
+    
     def post_index(self, request, content_type=None):
         from django.core.exceptions import ValidationError
         from .http import HttpCreated
@@ -137,6 +146,9 @@ class Resource(object):
         return HttpCreated(location=uri)
     
     def schema(self, request, content_type=None):
+        if not self.is_authenticated(request):
+            raise Exception("You must be authenticated to view this resource")
+        
         return JsonResponse(content_type)
     
     @property
