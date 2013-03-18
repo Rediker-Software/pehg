@@ -85,6 +85,32 @@ class TestResources(TestCase):
         
         self.assertEqual(len(response.data_dict["pears"]), len(resource.data_set.data_dict))
     
+    def test_not_implemented(self):
+        class TestResource(Resource):
+            allowed_methods = []
+            resource_name = "test"
+        
+        resource = TestResource()
+        
+        test_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+        test_types = ["index", "details"]
+        
+        for method in test_methods:
+            self.assertFalse(method in resource.allowed_methods)
+            
+            request = HttpRequest()
+            request.method = method
+            
+            for type in test_types:
+                validate_request_type = resource._validate_request_type(request, type)
+                self.assertEqual(validate_request_type, None)
+            
+            response = resource.dispatch_index(request)
+            self.assertEqual(response.status_code, 501)
+            
+            response = resource.dispatch_details(request, "1")
+            self.assertEqual(response.status_code, 501)
+    
     def test_urls(self):
         resource = PearResource()
         
