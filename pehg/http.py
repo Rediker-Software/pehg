@@ -10,6 +10,10 @@ class HttpCreated(HttpResponse):
         self['Location'] = location
 
 
+class HttpNotImplemented(HttpResponse):
+    status_code = 501
+
+
 class JsonResponse(HttpResponse):
     
     def __init__(self, data_dict, *args, **kwargs):

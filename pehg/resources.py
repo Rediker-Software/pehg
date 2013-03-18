@@ -56,6 +56,7 @@ class Resource(object):
     
     @csrf_exempt
     def dispatch_details(self, request, pks, content_type=None):
+        from .http import HttpNotImplemented
         import re
         
         if not self.is_authenticated(request):
@@ -70,14 +71,22 @@ class Resource(object):
         
         func = self._validate_request_type(request, func_type)
         
+        if func is None:
+            return HttpNotImplemented()
+        
         return func(request, pks, content_type)
     
     @csrf_exempt
     def dispatch_index(self, request, content_type=None):
+        from .http import HttpNotImplemented
+        
         if not self.is_authenticated(request):
             raise Exception("You must be authenticated to view this resource")
             
         func = self._validate_request_type(request, "index")
+        
+        if func is None:
+            return HttpNotImplemented()
         
         return func(request, content_type)
     
@@ -137,7 +146,7 @@ class Resource(object):
         try:
             obj = self.validate_object(obj)
         except ValidationError, e:
-            return JsonResponse({"errors": e.messages})
+            return self.serializer.serialize({"errors": e.messages}, format)
         
         created = self.data_set.create(**self.data_set.serialize_obj(obj))
         
@@ -149,7 +158,17 @@ class Resource(object):
         if not self.is_authenticated(request):
             raise Exception("You must be authenticated to view this resource")
         
-        return JsonResponse(content_type)
+        format = self._determine_content_type_from_request(request, content_type)
+        
+        response = {
+            "allowed_methods": self.allowed_methods,
+            "fields": {},
+        }
+        
+        for field_name, field in self.fields.iteritems():
+            response["fields"][field_name] = field.generate_schema()
+        
+        return self.serializer.serialize(response, format)
     
     @property
     def urls(self):
