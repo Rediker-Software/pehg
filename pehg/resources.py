@@ -165,7 +165,7 @@ class Resource(object):
             "fields": {},
         }
         
-        for field_name, field in self.fields.iteritems():
+        for field_name, field in self.api_fields.iteritems():
             response["fields"][field_name] = field.generate_schema()
         
         return self.serializer.serialize(response, format)
@@ -296,8 +296,9 @@ class ModelResource(Resource):
             
             api_field = fields.Field()
             
-            if internal_type in ("CharField", ):
-                api_field = fields.CharField()
+            if hasattr(fields, internal_type):
+                api_field_class = getattr(fields, internal_type)
+                api_field = api_field_class.instance_from_model_field(field)
             
             api_fields[field.name] = api_field
             
