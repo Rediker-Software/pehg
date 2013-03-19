@@ -4,13 +4,14 @@ from django.db.models.fields import NOT_PROVIDED
 
 class Field(object):
     default = None
+    help_text = None
     nullable = True
     required = False
     
     form_field = fields.Field
     
     def __init__(self, *args, **kwargs):
-        allowed_properties = ["default", "nullable", "required", ]
+        allowed_properties = ["default", "help_text", "nullable", "required", ]
         
         for name, value in kwargs.iteritems():
             if name in allowed_properties:
@@ -30,6 +31,7 @@ class Field(object):
     def generate_schema(self):
         return {
             "default": self.default,
+            "help_text": self.help_text,
             "nullable": self.nullable,
             "required": self.required,
         }
@@ -52,6 +54,7 @@ class Field(object):
 
 class CharField(Field):
     
+    help_text = "Unicode string data."
     max_length = None
     
     def __init__(self, max_length=None, min_length=None, *args, **kwargs):
@@ -61,7 +64,7 @@ class CharField(Field):
         self.max_length = max_length
     
     def get_form_field(self):
-        return fields.CharField(min_length=self.min_length, max_length=self.max_length)
+        return fields.CharField(min_length=self.min_length, max_length=self.max_length, required=self.required)
     
     @classmethod
     def instance_from_model_field(cls, field):
@@ -85,6 +88,7 @@ class CharField(Field):
 class IntegerField(Field):
     
     default = 0
+    help_text = "Integer data."
     
     def __init__(self, min_value=None, max_value=None, *args, **kwargs):
         super(IntegerField, self).__init__(*args, **kwargs)
@@ -102,7 +106,7 @@ class IntegerField(Field):
         return instance
     
     def get_form_field(self):
-        return fields.IntegerField(min_value=self.min_value, max_value=self.max_value)
+        return fields.IntegerField(min_value=self.min_value, max_value=self.max_value, required=self.required)
     
     def generate_schema(self):
         schema = super(IntegerField, self).generate_schema()

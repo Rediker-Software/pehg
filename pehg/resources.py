@@ -188,11 +188,14 @@ class Resource(object):
         from django.core.exceptions import ValidationError
         
         errors = {}
+        new_dict = {}
         
         for name, field in self.api_fields.iteritems():
-            value = getattr(obj, name)
+            value = getattr(obj, name, None)
+            
             try:
                 cleaned_value = field.unserialize(value)
+                new_dict[name] = cleaned_value
             except ValidationError, e:
                 errors[name] = e.messages
         
@@ -201,6 +204,8 @@ class Resource(object):
             error.messages = errors
             
             raise error
+        
+        obj = self.data_set.unserialize_obj(new_dict)
         
         return obj
     

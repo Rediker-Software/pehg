@@ -66,7 +66,7 @@ class XmlSerializer(Serializer):
             for value in obj:
                 xml_element.append(self._obj_to_xml(value))
         
-        elif isinstance(obj, (str, int, float, )):
+        elif isinstance(obj, (str, unicode, int, float, )):
             xml_element.text = str(obj)
             
         return xml_element
