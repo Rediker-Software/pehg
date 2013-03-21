@@ -3,6 +3,55 @@ from django.forms import fields as django_fields
 from pehg import fields
 
 
+class TestField(TestCase):
+    
+    def test_init(self):
+        field = fields.Field()
+        
+        self.assertFalse(field.required)
+        self.assertTrue(field.nullable)
+        self.assertEqual(field.default, None)
+        self.assertEqual(field.help_text, None)
+        
+        field = fields.Field(required=True, nullable=False, default="default", help_text="Custom.")
+        
+        self.assertTrue(field.required)
+        self.assertFalse(field.nullable)
+        self.assertEqual(field.default, "default")
+        self.assertEqual(field.help_text, "Custom.")
+    
+    def test_generate_schema(self):
+        field = fields.Field()
+        schema = field.generate_schema()
+        
+        self.assertTrue("required" in schema)
+        self.assertTrue("nullable" in schema)
+        self.assertTrue("help_text" in schema)
+        self.assertTrue("default" in schema)
+        
+        self.assertFalse(schema["required"])
+        self.assertTrue(schema["nullable"])
+        self.assertEqual(schema["default"], None)
+        self.assertEqual(schema["help_text"], None)
+        
+        field = fields.Field(default="default", help_text="Custom.", nullable=False, required=True)
+        schema = field.generate_schema()
+        
+        self.assertFalse(schema["nullable"])
+        self.assertTrue(schema["required"])
+        self.assertEqual(schema["default"], "default")
+        self.assertEqual(schema["help_text"], "Custom.")
+    
+    def test_get_form_field(self):
+        field = fields.Field()
+        
+        try:
+            form_field = field.get_form_field()
+            self.fail("get_form_field is defined in the base Field and does not throw an exception")
+        except NotImplementedError:
+            pass
+
+
 class TestIntegerField(TestCase):
     
     def test_init(self):

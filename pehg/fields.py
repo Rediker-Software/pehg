@@ -36,6 +36,9 @@ class Field(object):
             "required": self.required,
         }
     
+    def get_form_field(self):
+        raise NotImplementedError("You must define this in your field class.")
+    
     def serialize(self, value):
         form_field = self.get_form_field()
         
