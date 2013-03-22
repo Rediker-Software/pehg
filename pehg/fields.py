@@ -134,6 +134,14 @@ class DecimalField(Field):
         return instance
 
 
+class EmailField(CharField):
+    
+    help_text = "Email address data."
+    
+    def get_form_field(self):
+        return fields.EmailField(min_length=self.min_length, max_length=self.max_length, required=self.required)
+
+
 class IntegerField(Field):
     
     default = 0
