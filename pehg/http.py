@@ -21,8 +21,17 @@ class JsonResponse(HttpResponse):
             import simplejson as json
         except ImportError:
             import json
+            
+        class CustomJsonEncoder(json.JSONEncoder):
+            def default(self, obj):
+                import datetime
+                
+                if isinstance(obj, (datetime.datetime, datetime.date, datetime.time, )):
+                    return obj.isoformat()
+                else:
+                    return super(CustomJsonEncoder, self).default(obj)
         
-        super(JsonResponse, self).__init__(json.dumps(data_dict), mimetype="application/json", *args, **kwargs)
+        super(JsonResponse, self).__init__(CustomJsonEncoder().encode(data_dict), mimetype="application/json", *args, **kwargs)
         
         self.data_dict = data_dict
 
