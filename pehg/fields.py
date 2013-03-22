@@ -55,9 +55,8 @@ class Field(object):
 
 class BooleanField(Field):
     
-    help_text = "Boolean data."
-    
     default = False
+    help_text = "Boolean data."
     
     def get_form_field(self):
         return fields.BooleanField(required=self.required)
@@ -96,6 +95,43 @@ class CharField(Field):
         })
         
         return schema
+
+
+class DecimalField(Field):
+    
+    default = 0
+    help_text = "Decimal data."
+    
+    max_digits = None
+    decimal_places = None
+    
+    def __init__(self, max_digits=None, decimal_places=None, *args, **kwargs):
+        super(DecimalField, self).__init__(*args, **kwargs)
+        
+        self.max_digits = max_digits
+        self.decimal_places = decimal_places
+    
+    def generate_schema(self):
+        schema = super(DecimalField, self).generate_schema()
+        
+        schema.update({
+            "max_digits": self.max_digits,
+            "decimal_places": self.decimal_places,
+        })
+        
+        return schema
+    
+    def get_form_field(self):
+        return fields.DecimalField(max_digits=self.max_digits, decimal_places=self.decimal_places, required=self.required)
+    
+    @classmethod
+    def instance_from_model_field(cls, model):
+        instance = super(DecimalField, cls).instance_from_model_field(model)
+        
+        instance.max_digits = model.max_digits
+        instance.decimal_places = model.decimal_places
+        
+        return instance
 
 
 class IntegerField(Field):

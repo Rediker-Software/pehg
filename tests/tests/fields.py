@@ -124,6 +124,61 @@ class TestCharField(TestCase):
         self.assertEqual(field.max_length, 999)
 
 
+class TestDecimalField(TestCase):
+    
+    def test_init(self):
+        field = fields.DecimalField()
+        
+        self.assertEqual(field.max_digits, None)
+        self.assertEqual(field.decimal_places, None)
+        
+        field = fields.DecimalField(max_digits=5, decimal_places=2)
+        
+        self.assertEqual(field.max_digits, 5)
+        self.assertEqual(field.decimal_places, 2)
+    
+    def test_generate_schema(self):
+        field = fields.DecimalField()
+        schema = field.generate_schema()
+        
+        self.assertTrue("max_digits" in schema)
+        self.assertTrue("decimal_places" in schema)
+        self.assertEqual(schema["max_digits"], None)
+        self.assertEqual(schema["decimal_places"], None)
+        
+        field = fields.DecimalField(max_digits=5, decimal_places=2)
+        schema = field.generate_schema()
+        
+        self.assertEqual(schema["max_digits"], 5)
+        self.assertEqual(schema["decimal_places"], 2)
+    
+    def test_get_form_field(self):
+        field = fields.DecimalField()
+        form_field = field.get_form_field()
+        
+        self.assertEqual(form_field.max_digits, None)
+        self.assertEqual(form_field.decimal_places, None)
+        
+        field = fields.DecimalField(max_digits=5, decimal_places=2)
+        form_field = field.get_form_field()
+        
+        self.assertEqual(form_field.max_digits, 5)
+        self.assertEqual(form_field.decimal_places, 2)
+    
+    def test_instance_from_model_field(self):
+        djf = model_fields.DecimalField()
+        field = fields.DecimalField.instance_from_model_field(djf)
+        
+        self.assertEqual(field.max_digits, None)
+        self.assertEqual(field.decimal_places, None)
+        
+        djf = model_fields.DecimalField(max_digits=5, decimal_places=2)
+        field = fields.DecimalField.instance_from_model_field(djf)
+        
+        self.assertEqual(field.max_digits, 5)
+        self.assertEqual(field.decimal_places, 2)
+
+
 class TestIntegerField(TestCase):
     
     def test_init(self):
