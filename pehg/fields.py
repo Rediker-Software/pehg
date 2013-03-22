@@ -138,6 +138,15 @@ class DateField(Field):
         return field
 
 
+class DateTimeField(DateField):
+    
+    help_text = "A date and time as a string."
+    input_formats = formats.get_format('DATETIME_INPUT_FORMATS')
+    
+    def get_form_field(self):
+        return fields.DateTimeField(input_formats=self.input_formats, required=self.required)
+
+
 class DecimalField(Field):
     
     default = 0
@@ -214,3 +223,13 @@ class TextField(Field):
     
     def get_form_field(self):
         return fields.CharField(required=self.required)
+
+
+class TimeField(DateField):
+    
+    help_text = "A time as a string."
+    input_formats = formats.get_format('TIME_INPUT_FORMATS')
+    
+    def get_form_field(self):
+        return fields.TimeField(input_formats=self.input_formats, required=self.required)
+
