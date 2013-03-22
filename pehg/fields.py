@@ -1,4 +1,4 @@
-from django.forms import fields
+from django.forms import fields, widgets
 from django.db.models.fields import NOT_PROVIDED
 
 
@@ -165,3 +165,11 @@ class IntegerField(Field):
         })
         
         return schema
+
+
+class TextField(Field):
+    
+    help_text = "Unicode string data."
+    
+    def get_form_field(self):
+        return fields.CharField(required=self.required)
