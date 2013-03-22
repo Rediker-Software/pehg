@@ -8,8 +8,6 @@ class Field(object):
     nullable = True
     required = False
     
-    form_field = fields.Field
-    
     def __init__(self, *args, **kwargs):
         allowed_properties = ["default", "help_text", "nullable", "required", ]
         
@@ -53,6 +51,16 @@ class Field(object):
         cleaned = form_field.clean(value)
         
         return cleaned
+
+
+class BooleanField(Field):
+    
+    help_text = "Boolean data."
+    
+    default = False
+    
+    def get_form_field(self):
+        return fields.BooleanField(required=self.required)
 
 
 class CharField(Field):
