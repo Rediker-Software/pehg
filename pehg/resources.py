@@ -96,7 +96,7 @@ class Resource(object):
     
     def get_index(self, request, content_type=None):
         index_data = {}
-        index_data[self.resource_name_plural] = self.data_set.serialize_list(self._fields)
+        index_data[self.resource_name_plural] = self.serialize_list(self._fields)
         
         format = self._determine_content_type_from_request(request, content_type)
         
@@ -109,7 +109,7 @@ class Resource(object):
         if not self.can_view(request, obj):
             raise Exception("You do not have permission to view this resource.")
         
-        return self.serializer.serialize(self.data_set.serialize_obj(obj, self._fields), format)
+        return self.serializer.serialize(self.serialize_obj(obj, self._fields), format)
     
     def get_set(self, request, pks, content_type=None):
         import re
@@ -122,7 +122,7 @@ class Resource(object):
             if not self.can_view(request, obj):
                 raise Exception("You do not have permission to view this resource.")
                 
-            data_list.append(self.data_set.serialize_obj(obj, self._fields))
+            data_list.append(self.serialize_obj(obj, self._fields))
         
         format = self._determine_content_type_from_request(request, content_type)
         
@@ -152,9 +152,9 @@ class Resource(object):
         except ValidationError, e:
             return self.serializer.serialize({"errors": e.messages}, format)
         
-        created = self.data_set.create(**self.data_set.serialize_obj(obj))
+        created = self.data_set.create(**self.serialize_obj(obj))
         
-        uri = self.data_set.serialize_obj(created)["resource_uri"]
+        uri = self.serialize_obj(created)["resource_uri"]
         
         return HttpCreated(location=uri)
     
@@ -173,6 +173,12 @@ class Resource(object):
             response["fields"][field_name] = field.generate_schema()
         
         return self.serializer.serialize(response, format)
+    
+    def serialize_list(self, fields=[]):
+        return self.data_set.serialize_list(fields)
+    
+    def serialize_obj(self, obj, fields=[]):
+        return self.data_set.serialize_obj(obj, fields)
     
     @property
     def urls(self):
@@ -305,7 +311,7 @@ class ModelResource(Resource):
             
             api_field = fields.Field()
             
-            if internal_type in ("ManyToManyField", "OneToOneField", "ForeignKey", "GenericForeignKey" ):
+            if internal_type in ("ManyToManyField", "OneToOneField", "ForeignKey", "GenericForeignKey"):
                 continue
             
             if internal_type in ("AutoField", ):
@@ -316,5 +322,10 @@ class ModelResource(Resource):
                 api_field = api_field_class.instance_from_model_field(field)
             
             api_fields[field.name] = api_field
+        
+        if hasattr(self, "fields") and isinstance(self.fields, dict):
+            for name, field in self.fields.iteritems():
+                if field:
+                    self._validate_init_fields({name: field})
             
         self.api_fields = api_fields

@@ -101,7 +101,10 @@ class ModelDataSet(DataSet):
         return self.queryset.count()
     
     def create(self, *args, **kwargs):
-        obj = self.unserialize_obj(kwargs)
+        create = self._obj_create_dict(kwargs)
+        m2m = self._obj_m2m_dict(kwargs)
+        
+        obj = self.unserialize_obj(create)
         obj.save()
         
         return obj
