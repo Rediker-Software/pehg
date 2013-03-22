@@ -196,6 +196,8 @@ class IntegerField(Field):
     
     default = 0
     help_text = "Integer data."
+    min_value = None
+    max_value = None
     
     def __init__(self, min_value=None, max_value=None, *args, **kwargs):
         super(IntegerField, self).__init__(*args, **kwargs)
@@ -217,6 +219,18 @@ class IntegerField(Field):
         return schema
 
 
+class PositiveIntegerField(IntegerField):
+    
+    help_text = "Integer data which is positive or zero."
+    min_value = 0
+    
+    def __init__(self, *args, **kwargs):
+        return super(PositiveIntegerField, self).__init__(min_value=0, *args, **kwargs)
+    
+    def get_form_field(self):
+        return fields.PositiveIntegerField(max_value=self.max_value, required=self.required)
+
+
 class TextField(Field):
     
     help_text = "Unicode string data."
@@ -232,4 +246,3 @@ class TimeField(DateField):
     
     def get_form_field(self):
         return fields.TimeField(input_formats=self.input_formats, required=self.required)
-
