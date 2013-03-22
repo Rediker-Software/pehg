@@ -1,5 +1,6 @@
 from django.forms import fields, widgets
 from django.db.models.fields import NOT_PROVIDED
+from django.utils import formats
 
 
 class Field(object):
@@ -95,6 +96,46 @@ class CharField(Field):
         })
         
         return schema
+
+
+class DateField(Field):
+    
+    help_text = "A date as a string."
+    
+    auto_now = False
+    auto_now_add = False
+    
+    input_formats = formats.get_format('DATE_INPUT_FORMATS')
+    
+    def __init__(self, auto_now=False, auto_now_add=False, input_formats=None, *args, **kwargs):
+        super(DateField, self).__init__(*args, **kwargs)
+        
+        self.auto_now = auto_now
+        self.auto_now_add = auto_now_add
+        
+        if input_formats:
+            self.input_formats = input_formats
+    
+    def generate_schema(self):
+        schema = super(DateField, self).generate_schema()
+        
+        schema.update({
+            "formats": self.input_formats,
+        })
+        
+        return schema
+    
+    def get_form_field(self):
+        return fields.DateField(input_formats=self.input_formats, required=self.required)
+    
+    @classmethod
+    def instance_from_model_field(cls, model):
+        field = super(DateField, cls).instance_from_model_field(model)
+        
+        field.auto_now = model.auto_now
+        field.auto_now_add = model.auto_now_add
+        
+        return field
 
 
 class DecimalField(Field):
