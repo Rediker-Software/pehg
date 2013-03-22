@@ -52,6 +52,49 @@ class TestField(TestCase):
             pass
 
 
+class TestCharField(TestCase):
+    
+    def test_init(self):
+        field = fields.CharField()
+        
+        self.assertEqual(field.help_text, "Unicode string data.")
+        self.assertEqual(field.min_length, None)
+        self.assertEqual(field.max_length, None)
+        
+        field = fields.CharField(min_length=1, max_length=999)
+        
+        self.assertEqual(field.min_length, 1)
+        self.assertEqual(field.max_length, 999)
+    
+    def test_generate_schema(self):
+        field = fields.CharField()
+        schema = field.generate_schema()
+        
+        self.assertTrue("min_length" in schema)
+        self.assertTrue("max_length" in schema)
+        self.assertEqual(schema["min_length"], None)
+        self.assertEqual(schema["max_length"], None)
+        
+        field = fields.CharField(min_length=1, max_length=999)
+        schema = field.generate_schema()
+        
+        self.assertEqual(schema["min_length"], 1)
+        self.assertEqual(schema["max_length"], 999)
+    
+    def test_get_form_field(self):
+        field = fields.CharField()
+        form_field = field.get_form_field()
+        
+        self.assertEqual(form_field.min_length, None)
+        self.assertEqual(form_field.max_length, None)
+        
+        field = fields.CharField(min_length=1, max_length=999)
+        form_field = field.get_form_field()
+        
+        self.assertEqual(form_field.min_length, 1)
+        self.assertEqual(form_field.max_length, 999)
+
+
 class TestIntegerField(TestCase):
     
     def test_init(self):

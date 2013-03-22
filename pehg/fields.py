@@ -58,6 +58,8 @@ class Field(object):
 class CharField(Field):
     
     help_text = "Unicode string data."
+    
+    min_length = None
     max_length = None
     
     def __init__(self, max_length=None, min_length=None, *args, **kwargs):
