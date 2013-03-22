@@ -1,5 +1,6 @@
 from django.test import TestCase
-from django.forms import fields as django_fields
+from django.forms import fields as form_fields
+from django.db.models import fields as model_fields
 from pehg import fields
 
 
@@ -50,6 +51,21 @@ class TestField(TestCase):
             self.fail("get_form_field is defined in the base Field and does not throw an exception")
         except NotImplementedError:
             pass
+    
+    def test_instance_from_model_field(self):
+        djf = model_fields.Field()
+        field = fields.Field.instance_from_model_field(djf)
+        
+        self.assertTrue(field.required)
+        self.assertFalse(field.nullable)
+        self.assertEqual(field.default, None)
+        
+        djf = model_fields.Field(blank=True, default="wut", null=True)
+        field = fields.Field.instance_from_model_field(djf)
+        
+        self.assertFalse(field.required)
+        self.assertTrue(field.nullable)
+        self.assertEqual(field.default, "wut")
 
 
 class TestCharField(TestCase):
@@ -85,6 +101,7 @@ class TestCharField(TestCase):
         field = fields.CharField()
         form_field = field.get_form_field()
         
+        self.assertTrue(isinstance(form_field, form_fields.CharField))
         self.assertEqual(form_field.min_length, None)
         self.assertEqual(form_field.max_length, None)
         
@@ -93,6 +110,18 @@ class TestCharField(TestCase):
         
         self.assertEqual(form_field.min_length, 1)
         self.assertEqual(form_field.max_length, 999)
+    
+    def test_instance_from_model_field(self):
+        djf = model_fields.CharField()
+        field = fields.CharField.instance_from_model_field(djf)
+        
+        self.assertEqual(field.min_length, None)
+        self.assertEqual(field.max_length, None)
+        
+        djf = model_fields.CharField(max_length=999)
+        field = fields.CharField.instance_from_model_field(djf)
+        
+        self.assertEqual(field.max_length, 999)
 
 
 class TestIntegerField(TestCase):
@@ -114,7 +143,7 @@ class TestIntegerField(TestCase):
         field = fields.IntegerField()
         form_field = field.get_form_field()
         
-        self.assertTrue(isinstance(form_field, django_fields.IntegerField))
+        self.assertTrue(isinstance(form_field, form_fields.IntegerField))
         self.assertEqual(form_field.min_value, None)
         self.assertEqual(form_field.max_value, None)
         
@@ -139,3 +168,11 @@ class TestIntegerField(TestCase):
         
         self.assertEqual(schema["min_value"], 1)
         self.assertEqual(schema["max_value"], 999)
+    
+    def test_instance_from_model_field(self):
+        djf = model_fields.IntegerField()
+        field = fields.IntegerField.instance_from_model_field(djf)
+        
+        self.assertEqual(field.default, 0)
+        self.assertEqual(field.min_value, None)
+        self.assertEqual(field.max_value, None)
