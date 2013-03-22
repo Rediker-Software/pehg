@@ -101,15 +101,6 @@ class IntegerField(Field):
         self.min_value = min_value
         self.max_value = max_value
     
-    @classmethod
-    def instance_from_model_field(cls, field):
-        instance = super(IntegerField, cls).instance_from_model_field(field)
-        
-        instance.min_value = field.min_value
-        instance.max_value = field.max_value
-        
-        return instance
-    
     def get_form_field(self):
         return fields.IntegerField(min_value=self.min_value, max_value=self.max_value, required=self.required)
     
