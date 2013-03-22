@@ -53,15 +53,17 @@ class TestModelDataSet(TestCase):
     
     def test_serialize_list(self):
         data = ModelDataSet(Apple)
+        data.resource_name = "apple"
+        
         self.assertEqual(len(data.serialize_list()), 0)
         
         apple = Apple(name="test")
         apple.save()
         self.assertEqual(len(data.serialize_list()), 1)
-        self.assertEqual(sorted(data.serialize_list()[0].keys()), ["id", "name"])
+        self.assertEqual(sorted(data.serialize_list()[0].keys()), ["id", "name", "resource_uri"])
         
         self.assertEqual(len(data.serialize_list(["name"])), 1)
-        self.assertEqual(sorted(data.serialize_list(["name"])[0].keys()), ["name"])
+        self.assertEqual(sorted(data.serialize_list(["name"])[0].keys()), ["id", "name", "resource_uri"])
     
     def test_serialize_obj(self):
         data = ModelDataSet(Apple)
@@ -74,4 +76,4 @@ class TestModelDataSet(TestCase):
         self.assertEqual(serialized, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})
         
         serialized = data.serialize_obj(apple, ["name"])
-        self.assertEqual(serialized, {"name": "test", "resource_uri": "/v1/apple/1/"})
+        self.assertEqual(serialized, {"id": 1, "name": "test", "resource_uri": "/v1/apple/1/"})

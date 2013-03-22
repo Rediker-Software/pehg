@@ -95,6 +95,7 @@ class ModelDataSet(DataSet):
     def __init__(self, model):
         self.model = model
         self.queryset = model.objects.all()
+        self._primary_key = model._meta.pk.name
     
     def count(self):
         return self.queryset.count()
@@ -116,12 +117,22 @@ class ModelDataSet(DataSet):
         return self.queryset.get(*args, **kwargs)
     
     def serialize_list(self, fields=[]):
+        if fields:
+            fields.append(self._primary_key)
+        
         data_list = self.queryset.values(*fields)
+        
+        for obj in data_list:
+            if not "resource_uri" in obj:
+                obj["resource_uri"] = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": obj[self._primary_key]})
         
         return list(data_list)
     
     def serialize_obj(self, obj, fields=[]):
         from django.forms.models import model_to_dict
+        
+        if fields:
+            fields.append(self._primary_key)
         
         serialized = model_to_dict(obj, fields)
         
@@ -131,7 +142,33 @@ class ModelDataSet(DataSet):
         return serialized
     
     def unserialize_obj(self, obj):
+        obj = self._obj_create_dict(obj)
+        
         if "resource_uri" in obj:
             del obj["resource_uri"]
         
         return self.model(**obj)
+    
+    def _obj_create_dict(self, obj):
+        new_obj = {}
+        
+        for field in self.model._meta.fields:
+            internal_type = field.get_internal_type()
+            
+            if internal_type != "ManyToManyField":
+                if field.name in obj:
+                    new_obj[field.name] = obj[field.name]
+            
+        return new_obj
+    
+    def _obj_m2m_dict(self, obj):
+        new_obj = {}
+        
+        for field in self.model._meta.fields:
+            internal_type = field.get_internal_type()
+            
+            if internal_type == "ManyToManyField":
+                if field.name in obj:
+                    new_obj[field.name] = obj[field.name]
+            
+        return new_obj

@@ -28,6 +28,8 @@ class Resource(object):
     authentication = NoAuthentication()
     authorization = NoAuthorization()
     
+    _fields = []
+    
     def __init__(self, *args, **kwargs):
         if not self.resource_name_plural:
             self.resource_name_plural = self.resource_name + "s"
@@ -37,6 +39,8 @@ class Resource(object):
         
         if not self.api_fields and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_init_fields(self.fields)
+        
+        self._fields = self.api_fields.keys()
     
     def can_create(self, request):
         user = self.authentication.get_user(request)
@@ -92,7 +96,7 @@ class Resource(object):
     
     def get_index(self, request, content_type=None):
         index_data = {}
-        index_data[self.resource_name_plural] = self.data_set.serialize_list()
+        index_data[self.resource_name_plural] = self.data_set.serialize_list(self._fields)
         
         format = self._determine_content_type_from_request(request, content_type)
         
@@ -105,7 +109,7 @@ class Resource(object):
         if not self.can_view(request, obj):
             raise Exception("You do not have permission to view this resource.")
         
-        return self.serializer.serialize(self.data_set.serialize_obj(obj), format)
+        return self.serializer.serialize(self.data_set.serialize_obj(obj, self._fields), format)
     
     def get_set(self, request, pks, content_type=None):
         import re
@@ -118,7 +122,7 @@ class Resource(object):
             if not self.can_view(request, obj):
                 raise Exception("You do not have permission to view this resource.")
                 
-            data_list.append(self.data_set.serialize_obj(obj))
+            data_list.append(self.data_set.serialize_obj(obj, self._fields))
         
         format = self._determine_content_type_from_request(request, content_type)
         
