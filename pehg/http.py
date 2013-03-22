@@ -28,6 +28,8 @@ class JsonResponse(HttpResponse):
                 
                 if isinstance(obj, (datetime.datetime, datetime.date, datetime.time, )):
                     return obj.isoformat()
+                elif hasattr(obj, "__call__"):
+                    return self.default(obj())
                 else:
                     return super(CustomJsonEncoder, self).default(obj)
         

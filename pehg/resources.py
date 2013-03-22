@@ -301,6 +301,12 @@ class ModelResource(Resource):
             
             api_field = fields.Field()
             
+            if internal_type in ("ManyToManyField", "OneToOneField", "ForeignKey", "GenericForeignKey" ):
+                continue
+            
+            if internal_type in ("AutoField", ):
+                continue
+            
             if hasattr(fields, internal_type):
                 api_field_class = getattr(fields, internal_type)
                 api_field = api_field_class.instance_from_model_field(field)
