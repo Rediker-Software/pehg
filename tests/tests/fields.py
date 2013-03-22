@@ -124,6 +124,24 @@ class TestCharField(TestCase):
         self.assertEqual(field.max_length, 999)
 
 
+class TestDateField(TestCase):
+    
+    def test_init(self):
+        from django.utils import formats
+        
+        field = fields.DateField()
+        
+        self.assertFalse(field.auto_now)
+        self.assertFalse(field.auto_now_add)
+        self.assertEqual(field.input_formats, formats.get_format('DATE_INPUT_FORMATS'))
+        
+        field = fields.DateField(auto_now=True, auto_now_add=True, input_formats=["%Y-%M-%D"])
+        
+        self.assertTrue(field.auto_now)
+        self.assertTrue(field.auto_now_add)
+        self.assertEqual(field.input_formats, ["%Y-%M-%D"])
+
+
 class TestDecimalField(TestCase):
     
     def test_init(self):
