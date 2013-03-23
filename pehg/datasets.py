@@ -68,6 +68,11 @@ class DictionaryDataSet(DataSet):
         
         return data
     
+    def delete(self, pk):
+        del self.data_dict[pk]
+        
+        self.data[:] = [obj for obj in self.data if obj.get(self._primary_key) != pk]
+    
     def get(self, pk):
         return self.data_dict[pk]
     
@@ -108,6 +113,10 @@ class ModelDataSet(DataSet):
         obj.save()
         
         return obj
+    
+    def delete(self, *args, **kwargs):
+        obj = self.get(*args, **kwargs)
+        obj.delete()
     
     def filter(self, *args, **kwargs):
         copied = copy.deepcopy(self)

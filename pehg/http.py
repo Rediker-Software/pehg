@@ -10,6 +10,10 @@ class HttpCreated(HttpResponse):
         self['Location'] = location
 
 
+class HttpNoContent(HttpResponse):
+    status_code = 204
+
+
 class HttpNotImplemented(HttpResponse):
     status_code = 501
 

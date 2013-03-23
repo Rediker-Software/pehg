@@ -66,6 +66,17 @@ class Resource(object):
         user = self.authentication.get_user(request)
         return self.authorization.can_view(user, self, data_object)
     
+    def delete_instance(self, request, pk, content_type=None):
+        from .http import HttpNoContent
+        
+        obj = self.data_set.get(pk=pk)
+        if not self.can_delete(request, obj):
+            raise Exception("You do not have permission to delete this resource.")
+        
+        self.data_set.delete(pk=pk)
+        
+        return HttpNoContent()
+    
     @csrf_exempt
     def dispatch_details(self, request, pks, content_type=None):
         from .http import HttpNotImplemented
