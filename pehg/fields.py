@@ -1,6 +1,7 @@
 from django.forms import fields, widgets
 from django.db.models.fields import NOT_PROVIDED
 from django.utils import formats
+from django.core.exceptions import ValidationError
 
 
 class Field(object):
@@ -250,12 +251,24 @@ class TimeField(DateField):
 
 class RelatedField(Field):
     
+    attribute = None
     is_relation = True
+    to_resource = None
+    
+    def __init__(self, to_resource, attribute, *args, **kwargs):
+        super(RelatedField, self).__init__(*args, **kwargs)
+        
+        self.attribute = attribute
+        self.to_resource = to_resource
     
     def generate_schema(self):
         schema = super(RelatedField, self).generate_schema()
         
         del schema["default"]
+        
+        schema.update({
+            "related_uri": self._build_resource_uri(),
+        })
         
         return schema
     
@@ -264,26 +277,22 @@ class RelatedField(Field):
     
     def unserialize(self, value):
         return value
+    
+    def _build_obj_uri(self, obj):
+        return self.to_resource().serialize_obj(obj)["resource_uri"]
+    
+    def _build_resource_uri(self):
+        from django.core.urlresolvers import reverse
+        
+        return reverse("%s_index" % (self.to_resource.resource_name, ))
 
 
 class ToManyField(RelatedField):
     
-    help_text = "A link to another related resource."
+    help_text = "A link to a list of other related resources."
     
-    def __init__(self, to, attribute, *args, **kwargs):
-        super(ToManyField, self).__init__(*args, **kwargs)
-        
-        self.attribute = attribute
-        self.to_resource = to
-    
-    def generate_schema(self):
-        schema = super(ToManyField, self).generate_schema()
-        
-        schema.update({
-            "related_uri": self._build_resource_uri(),
-        })
-        
-        return schema
+    def __init__(self, to_resource, attribute, *args, **kwargs):
+        super(ToManyField, self).__init__(to_resource=to_resource, attribute=attribute, *args, **kwargs)
     
     def serialize(self, resource, value):
         obj = resource.data_set.get(pk=value[resource.data_set._primary_key])
@@ -295,11 +304,45 @@ class ToManyField(RelatedField):
             uri_list.append(self._build_obj_uri(inst))
         
         return uri_list
+
+
+class ToResourceField(RelatedField):
     
-    def _build_obj_uri(self, obj):
-        return self.to_resource().serialize_obj(obj)["resource_uri"]
+    help_text = "A link to a single related resource."
     
-    def _build_resource_uri(self):
-        from django.core.urlresolvers import reverse
+    def get_form_field(self):
+        from django.forms import models as model_fields
         
-        return reverse("%s_index" % (self.to_resource.resource_name, ))
+        field = model_fields.ModelChoiceField(queryset=self.to_resource().data_set.queryset, required=self.required)
+        field.error_messages["invalid_choice"] = "You did not provide a valid reference for this resource."
+        
+        return field
+    
+    def serialize(self, resource, value):
+        if self.attribute in value:
+            pk = value[self.attribute]
+        else:
+            pk = value[self.attribute + "_id"]
+        
+        obj_related = self.to_resource().data_set.get(pk=pk)
+        uri = self._build_obj_uri(obj_related)
+        
+        return uri
+    
+    def unserialize(self, value):
+        from django.core.urlresolvers import resolve
+        
+        form_field = self.get_form_field()
+        
+        try:
+            pk = int(value)
+        except ValueError:
+            try:
+                func, args, kwargs = resolve(value)
+                pk = kwargs["pks"]
+            except:
+                raise ValidationError(form_field.error_messages["invalid_choice"])
+        
+        obj = form_field.clean(pk)
+        
+        return obj

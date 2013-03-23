@@ -152,15 +152,14 @@ class Resource(object):
             request_body = request.raw_post_data
         
         format = self._determine_content_type_from_request(request, content_type)
-        
         data = self.serializer.unserialize(request_body, format)
-        obj = self.data_set.unserialize_obj(data)
+        
         try:
-            obj = self.validate_object(obj)
+            obj = self.validate_object(data)
         except ValidationError, e:
             return self.serializer.serialize({"errors": e.messages}, format)
         
-        created = self.data_set.create(**self.serialize_obj(obj))
+        created = self.data_set.create(**obj)
         
         uri = self.serialize_obj(created)["resource_uri"]
         
@@ -226,7 +225,11 @@ class Resource(object):
         new_dict = {}
         
         for name, field in self.api_fields.iteritems():
-            value = getattr(obj, name, None)
+            
+            if not name in obj:
+                value = None
+            else:
+                value = obj[name]
             
             try:
                 cleaned_value = field.unserialize(value)
@@ -240,9 +243,7 @@ class Resource(object):
             
             raise error
         
-        obj = self.data_set.unserialize_obj(new_dict)
-        
-        return obj
+        return new_dict
     
     def _content_types_urlconf(self):
         types = "|".join(self.serializer.content_types.keys())
