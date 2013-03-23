@@ -190,8 +190,20 @@ class Resource(object):
         
         return obj_list
     
-    def serialize_obj(self, obj, fields=[]):
-        return self.data_set.serialize_obj(obj, fields)
+    def serialize_obj(self, data, fields=[]):
+        obj = self.data_set.serialize_obj(data, fields)
+        for field in self._related_fields:
+            obj[field] = self.api_fields[field].serialize(self, obj)
+            
+        return obj
+    
+    def serialize_set(self, data_set, fields=[]):
+        obj_set = data_set.serialize_list(fields)
+        for obj in obj_set:
+            for field in self._related_fields:
+                obj[field] = self.api_fields[field].serialize(self, obj)
+        
+        return obj_set
     
     @property
     def urls(self):
@@ -308,7 +320,7 @@ class ModelResource(Resource):
         
         format = self._determine_content_type_from_request(request, content_type)
         
-        return self.serializer.serialize(data_list.serialize_list(self._fields), format)
+        return self.serializer.serialize(self.serialize_set(data_list, self._fields), format)
     
     def _convert_model_to_pehg_fields(self, model):
         from . import fields

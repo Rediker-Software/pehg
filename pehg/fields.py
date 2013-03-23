@@ -266,18 +266,18 @@ class RelatedField(Field):
         return value
 
 
-class ToResourceField(RelatedField):
+class ToManyField(RelatedField):
     
     help_text = "A link to another related resource."
     
     def __init__(self, to, attribute, *args, **kwargs):
-        super(ToResourceField, self).__init__(*args, **kwargs)
+        super(ToManyField, self).__init__(*args, **kwargs)
         
         self.attribute = attribute
         self.to_resource = to
     
     def generate_schema(self):
-        schema = super(ToResourceField, self).generate_schema()
+        schema = super(ToManyField, self).generate_schema()
         
         schema.update({
             "related_uri": self._build_resource_uri(),
