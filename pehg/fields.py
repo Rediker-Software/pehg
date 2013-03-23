@@ -294,6 +294,14 @@ class ToManyField(RelatedField):
     def __init__(self, to_resource, attribute, *args, **kwargs):
         super(ToManyField, self).__init__(to_resource=to_resource, attribute=attribute, *args, **kwargs)
     
+    def get_form_field(self):
+        from django.forms import models as model_fields
+        
+        field = model_fields.ModelMultipleChoiceField(queryset=self.to_resource().data_set.queryset, required=self.required)
+        field.error_messages["invalid_choice"] = "You did not provide a valid reference for this resource."
+        
+        return field
+    
     def serialize(self, resource, value):
         obj = resource.data_set.get(pk=value[resource.data_set._primary_key])
         
@@ -304,6 +312,36 @@ class ToManyField(RelatedField):
             uri_list.append(self._build_obj_uri(inst))
         
         return uri_list
+    
+    def unserialize(self, value):
+        from django.core.urlresolvers import resolve
+        
+        form_field = self.get_form_field()
+        pks = []
+        
+        if isinstance(value, list):
+            for pk in value:
+                try:
+                    pks.append(int(pk))
+                except ValueError:
+                    try:
+                        func, args, kwargs = resolve(pk)
+                        pks.append(kwargs["pks"])
+                    except:
+                        raise ValidationError(form_field.error_messages["invalid_choice"])
+        else:
+            try:
+                pks = [int(value)]
+            except ValueError:
+                try:
+                    func, args, kwargs = resolve(value)
+                    pks = [kwargs["pks"]]
+                except:
+                    raise ValidationError(form_field.error_messages["invalid_choice"])
+        
+        obj = form_field.clean(pks)
+        
+        return obj
 
 
 class ToResourceField(RelatedField):
