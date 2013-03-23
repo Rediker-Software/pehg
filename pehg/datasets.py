@@ -112,6 +112,12 @@ class ModelDataSet(DataSet):
         obj = self.unserialize_obj(create)
         obj.save()
         
+        for attr, value in m2m.iteritems():
+            setattr(obj, attr, value)
+        
+        if m2m:
+            obj.save()
+        
         return obj
     
     def delete(self, *args, **kwargs):
@@ -176,11 +182,11 @@ class ModelDataSet(DataSet):
     def _obj_m2m_dict(self, obj):
         new_obj = {}
         
-        for field in self.model._meta.fields:
+        for name, value in obj.iteritems():
+            field = self.model._meta.get_field_by_name(name)[0]
             internal_type = field.get_internal_type()
             
             if internal_type == "ManyToManyField":
-                if field.name in obj:
-                    new_obj[field.name] = obj[field.name]
+                new_obj[name] = obj[name]
             
         return new_obj
