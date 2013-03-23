@@ -66,6 +66,22 @@ class Resource(object):
         user = self.authentication.get_user(request)
         return self.authorization.can_view(user, self, data_object)
     
+    def delete_set(self, request, pks, content_type=None):
+        from .http import HttpNoContent
+        import re
+        
+        pk_list = re.split("[\W;,]", pks)
+        data_list = []
+        
+        for pk in pk_list:
+            obj = self.data_set.get(pk=pk)
+            if not self.can_delete(request, obj):
+                raise Exception("You do not have permission to delete this resource.")
+                
+            self.data_set.delete(pk=pk)
+        
+        return HttpNoContent()
+    
     def delete_instance(self, request, pk, content_type=None):
         from .http import HttpNoContent
         
@@ -322,6 +338,22 @@ class ModelResource(Resource):
         self._convert_model_to_pehg_fields(self.model)
         
         super(ModelResource, self).__init__(*args, **kwargs)
+    
+    def delete_set(self, request, pks, content_type=None):
+        from .http import HttpNoContent
+        import re
+        
+        pk_list = re.split("[\W;,]", pks)
+        data_list = []
+        
+        for pk in pk_list:
+            obj = self.data_set.get(pk=pk)
+            if not self.can_delete(request, obj):
+                raise Exception("You do not have permission to delete this resource.")
+                
+            self.data_set.delete(pk=pk)
+        
+        return HttpNoContent()
     
     def get_set(self, request, pks, content_type=None):
         import re
