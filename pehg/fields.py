@@ -246,3 +246,60 @@ class TimeField(DateField):
     
     def get_form_field(self):
         return fields.TimeField(input_formats=self.input_formats, required=self.required)
+
+
+class RelatedField(Field):
+    
+    is_relation = True
+    
+    def generate_schema(self):
+        schema = super(RelatedField, self).generate_schema()
+        
+        del schema["default"]
+        
+        return schema
+    
+    def serialize(self, value):
+        return value
+    
+    def unserialize(self, value):
+        return value
+
+
+class ToResourceField(RelatedField):
+    
+    help_text = "A link to another related resource."
+    
+    def __init__(self, to, attribute, *args, **kwargs):
+        super(ToResourceField, self).__init__(*args, **kwargs)
+        
+        self.attribute = attribute
+        self.to_resource = to
+    
+    def generate_schema(self):
+        schema = super(ToResourceField, self).generate_schema()
+        
+        schema.update({
+            "related_uri": self._build_resource_uri(),
+        })
+        
+        return schema
+    
+    def serialize(self, resource, value):
+        obj = resource.data_set.get(pk=value[resource.data_set._primary_key])
+        
+        manager = getattr(obj, self.attribute)
+        uri_list = []
+        
+        for inst in manager.all():
+            uri_list.append(self._build_obj_uri(inst))
+        
+        return uri_list
+    
+    def _build_obj_uri(self, obj):
+        return self.to_resource().serialize_obj(obj)["resource_uri"]
+    
+    def _build_resource_uri(self):
+        from django.core.urlresolvers import reverse
+        
+        return reverse("%s_index" % (self.to_resource.resource_name, ))

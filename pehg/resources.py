@@ -29,6 +29,7 @@ class Resource(object):
     authorization = NoAuthorization()
     
     _fields = []
+    _related_fields = []
     
     def __init__(self, *args, **kwargs):
         if not self.resource_name_plural:
@@ -40,7 +41,14 @@ class Resource(object):
         if not self.api_fields and hasattr(self, "fields") and isinstance(self.fields, dict):
             self.api_fields = self._validate_init_fields(self.fields)
         
-        self._fields = self.api_fields.keys()
+        self._fields = []
+        self._related_fields = []
+        
+        for name, field in self.api_fields.iteritems():
+            if hasattr(field, "is_relation") and field.is_relation:
+                self._related_fields.append(name)
+            else:
+                self._fields.append(name)
     
     def can_create(self, request):
         user = self.authentication.get_user(request)
@@ -175,7 +183,12 @@ class Resource(object):
         return self.serializer.serialize(response, format)
     
     def serialize_list(self, fields=[]):
-        return self.data_set.serialize_list(fields)
+        obj_list = self.data_set.serialize_list(fields)
+        for obj in obj_list:
+            for field in self._related_fields:
+                obj[field] = self.api_fields[field].serialize(self, obj)
+        
+        return obj_list
     
     def serialize_obj(self, obj, fields=[]):
         return self.data_set.serialize_obj(obj, fields)
@@ -295,7 +308,7 @@ class ModelResource(Resource):
         
         format = self._determine_content_type_from_request(request, content_type)
         
-        return self.serializer.serialize(data_list.serialize_list(), format)
+        return self.serializer.serialize(data_list.serialize_list(self._fields), format)
     
     def _convert_model_to_pehg_fields(self, model):
         from . import fields
@@ -326,6 +339,6 @@ class ModelResource(Resource):
         if hasattr(self, "fields") and isinstance(self.fields, dict):
             for name, field in self.fields.iteritems():
                 if field:
-                    self._validate_init_fields({name: field})
+                    api_fields.update(self._validate_init_fields({name: field}))
             
         self.api_fields = api_fields
