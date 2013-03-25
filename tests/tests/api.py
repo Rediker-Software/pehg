@@ -76,9 +76,9 @@ class TestApi(TestCase):
         api = Api()
         
         urls = api.urls
-        self.assertEqual(len(urls), 1)
+        self.assertEqual(len(urls), 2)
         
         api.register_resource(AppleResource())
         api.register_resource(PearResource())
         urls = api.urls
-        self.assertEqual(len(urls), 5)
+        self.assertEqual(len(urls), 6)
