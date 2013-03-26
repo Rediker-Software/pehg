@@ -144,7 +144,7 @@ class ModelDataSet(DataSet):
             if not "resource_uri" in obj:
                 obj["resource_uri"] = reverse("%s_details" % (self.resource_name, ), kwargs={"pks": obj[self._primary_key]})
         
-        return list(data_list)
+        return dict((d[self._primary_key], d) for d in data_list).values()
     
     def serialize_obj(self, obj, fields=[]):
         from django.forms.models import model_to_dict

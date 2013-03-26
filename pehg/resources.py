@@ -43,11 +43,14 @@ class Resource(object):
         
         self._fields = []
         self._related_fields = []
+        self._lookup_fields = []
         
         for name, field in self.api_fields.iteritems():
             if hasattr(field, "is_relation") and field.is_relation:
+                self._lookup_fields.append(field.attribute)
                 self._related_fields.append(name)
             else:
+                self._lookup_fields.append(name)
                 self._fields.append(name)
     
     def can_create(self, request):
@@ -129,9 +132,13 @@ class Resource(object):
         
         return func(request, content_type)
     
+    def filter_get_data_set(self, request, data_set):
+        return data_set
+    
     def get_index(self, request, content_type=None):
         index_data = {}
-        index_data[self.resource_name_plural] = self.serialize_list(self._fields)
+        data_set = self.filter_get_data_set(request, self.data_set)
+        index_data[self.resource_name_plural] = self.serialize_list(data_set, self._lookup_fields)
         
         format = self._determine_content_type_from_request(request, content_type)
         
@@ -144,7 +151,7 @@ class Resource(object):
         if not self.can_view(request, obj):
             raise Exception("You do not have permission to view this resource.")
         
-        return self.serializer.serialize(self.serialize_obj(obj, self._fields), format)
+        return self.serializer.serialize(self.serialize_obj(obj, self._lookup_fields), format)
     
     def get_set(self, request, pks, content_type=None):
         import re
@@ -208,8 +215,8 @@ class Resource(object):
         
         return self.serializer.serialize(response, format)
     
-    def serialize_list(self, fields=[]):
-        obj_list = self.data_set.serialize_list(fields)
+    def serialize_list(self, data_set, fields=[]):
+        obj_list = data_set.serialize_list(fields)
         for obj in obj_list:
             for field in self._related_fields:
                 obj[field] = self.api_fields[field].serialize(self, obj)
