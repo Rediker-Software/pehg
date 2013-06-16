@@ -172,6 +172,29 @@ class Resource(object):
     
     def is_authenticated(self, request):
         return self.authentication.is_authenticated(request)
+
+    def patch_instance(self, request, pk, content_type=None):
+        from .http import HttpNoContent
+
+        try:
+            request_body = request.body
+        except AttributeError:
+            request_body = request.raw_post_data
+
+        format = self._determine_content_type_from_request(request, content_type)
+        data = self.serializer.unserialize(request_body, format)
+
+        original = self.data_set.get(pk=pk)
+        updated = self.data_set.merge(original, data)
+
+        try:
+            obj = self.validate_object(self.data_set.serialize_obj(updated))
+        except:
+            raise
+
+        updated.save(force_update=True)
+
+        return HttpNoContent()
     
     def post_index(self, request, content_type=None):
         from django.core.exceptions import ValidationError

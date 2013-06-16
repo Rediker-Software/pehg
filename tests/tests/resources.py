@@ -121,7 +121,7 @@ class TestResources(TestCase):
         
         request = HttpRequest()
         
-        test_methods = ["GET"]#, "POST", "PUT", "DELETE"]
+        test_methods = ["GET"] # , "POST", "PUT", "PATCH", "DELETE"]
         test_dispatch = ["index", "set", "instance"]
         
         for method in test_methods:
@@ -179,3 +179,14 @@ class TestModelResources(TestCase):
             response = resource.post_index(self.request)
             
             self.assertEqual(response.status_code, 201)
+
+    def test_patch_instance(self):
+        resource = AppleResource()
+
+        with self.assertNumQueries(2):
+            self.request._body = self.request._raw_post_data = '{"name": "changed"}'
+            response = resource.patch_instance(self.request, 1)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Apple.objects.count(), 2)
+        self.assertEqual(Apple.objects.get(id=1).name, "changed")

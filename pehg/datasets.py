@@ -133,6 +133,15 @@ class ModelDataSet(DataSet):
     
     def get(self, *args, **kwargs):
         return self.queryset.get(*args, **kwargs)
+
+    def merge(self, original, data):
+        original_data = self.serialize_obj(original)
+        original_data.update(data)
+
+        for key, value in original_data.items():
+            setattr(original, key, value)
+
+        return original
     
     def serialize_list(self, fields=[]):
         if fields:

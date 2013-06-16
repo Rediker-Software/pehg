@@ -36,3 +36,7 @@ tmp
 # Unrelated Django files
 website
 manage.py
+
+# PyCharm
+
+.idea
