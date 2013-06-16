@@ -14,7 +14,7 @@ except ImportError:
 
 class Resource(object):
     
-    allowed_methods = ["GET", "POST", "PUT", "DELETE"]
+    allowed_methods = ["GET", "POST", "PATCH", "PUT", "DELETE"]
     
     data_set = None
     api_fields = {}
@@ -176,6 +176,11 @@ class Resource(object):
     def patch_instance(self, request, pk, content_type=None):
         from .http import HttpNoContent
 
+        original = self.data_set.get(pk=pk)
+
+        if not self.can_edit(request, original):
+            raise Exception("You do not have permission to edit this resource.")
+
         try:
             request_body = request.body
         except AttributeError:
@@ -184,7 +189,6 @@ class Resource(object):
         format = self._determine_content_type_from_request(request, content_type)
         data = self.serializer.unserialize(request_body, format)
 
-        original = self.data_set.get(pk=pk)
         updated = self.data_set.merge(original, data)
 
         try:
@@ -201,7 +205,7 @@ class Resource(object):
         from .http import HttpCreated
         
         if not self.can_create(request):
-            raise Exception("Not allowed to create on resource")
+            raise Exception("You do not have permission to create on this resource.")
         
         try:
             request_body = request.body
